@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カンナダ語学習</title>
+<style>
+  :root {
+    --maroon: #6B1A1A;
+    --maroon-dark: #4A1010;
+    --maroon-light: #8B2A2A;
+    --gold: #C9A84C;
+    --gold-light: #E2C97E;
+    --bg: #1A0A0A;
+    --card-bg: #2A1010;
+    --text: #F5ECD7;
+    --text-dim: #B8A898;
+    --green: #4CAF50;
+    --red: #E57373;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+  header {
+    background: var(--maroon-dark);
+    border-bottom: 2px solid var(--gold);
+    padding: 12px 16px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.3rem; color: var(--gold); letter-spacing: 0.05em; }
+  header p { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+
+  /* Progress */
+  .progress-wrap { padding: 10px 16px 0; }
+  .progress-bar-bg {
+    background: var(--maroon-dark);
+    border-radius: 6px;
+    height: 8px;
+    overflow: hidden;
+    border: 1px solid var(--maroon-light);
+  }
+  .progress-bar-fill {
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+  }
+  .progress-label { font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; text-align: right; }
+
+  /* Category tabs */
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 10px 16px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--maroon-light);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .tab.active {
+    background: var(--gold);
+    color: var(--maroon-dark);
+    border-color: var(--gold);
+    font-weight: bold;
+  }
+
+  /* Card area */
+  .card-area { padding: 0 16px; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--maroon-light);
+    border-radius: 12px;
+    padding: 24px 20px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+  }
+  .card:active { border-color: var(--gold); }
+  .card .cat-badge {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-size: 0.68rem;
+    color: var(--gold);
+    background: var(--maroon-dark);
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--gold);
+  }
+  .card .score-dots {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: flex;
+    gap: 3px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1px solid var(--maroon-light);
+    background: transparent;
+  }
+  .dot.filled { background: var(--gold); border-color: var(--gold); }
+
+  .card .ja { font-size: 1.3rem; font-weight: bold; color: var(--text); margin-bottom: 10px; }
+  .card .tap-hint { font-size: 0.72rem; color: var(--text-dim); }
+
+  /* Revealed state */
+  .card .kata { font-size: 1.4rem; color: var(--gold-light); font-weight: bold; margin-bottom: 6px; }
+  .card .kn { font-size: 1.2rem; color: var(--text-dim); margin-bottom: 10px; }
+  .card .gr-tag {
+    font-size: 0.72rem;
+    background: var(--maroon-dark);
+    color: var(--gold);
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--maroon-light);
+    margin-bottom: 12px;
+  }
+
+  /* Word breakdown */
+  .word-breakdown {
+    width: 100%;
+    margin-top: 10px;
+    border-top: 1px solid var(--maroon-light);
+    padding-top: 10px;
+  }
+  .word-breakdown h4 {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    text-align: left;
+  }
+  .words-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+  }
+  .word-chip {
+    background: var(--maroon-dark);
+    border: 1px solid var(--maroon-light);
+    border-radius: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s;
+    min-width: 60px;
+  }
+  .word-chip:hover, .word-chip.active { border-color: var(--gold); }
+  .word-chip .wkata { font-size: 0.82rem; color: var(--gold-light); display: block; }
+  .word-chip .wkn { font-size: 0.72rem; color: var(--text-dim); display: block; }
+
+  /* Word gloss popup */
+  .gloss-box {
+    width: 100%;
+    margin-top: 8px;
+    background: var(--maroon-dark);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 8px 12px;
+    text-align: left;
+    animation: fadeIn 0.15s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+  .gloss-box .gloss-pos {
+    font-size: 0.68rem;
+    color: var(--gold);
+    margin-bottom: 3px;
+  }
+  .gloss-box .gloss-meaning { font-size: 0.82rem; color: var(--text); }
+
+  /* Buttons */
+  .buttons {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  .btn {
+    flex: 1;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-again { background: var(--maroon-light); color: var(--text); }
+  .btn-got { background: var(--gold); color: var(--maroon-dark); }
+  .btn:disabled { opacity: 0.35; cursor: default; }
+
+  /* Queue info */
+  .queue-info { text-align: center; font-size: 0.72rem; color: var(--text-dim); padding: 4px 16px 10px; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* Conjugation table */
+  .conj-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-top: 10px;
+  }
+  .conj-table th {
+    background: var(--maroon-dark);
+    color: var(--gold);
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--maroon-light);
+  }
+  .conj-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--maroon-dark);
+    vertical-align: top;
+  }
+  .conj-table tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+  .conj-kata { color: var(--gold-light); font-size: 0.88rem; }
+  .conj-kn { color: var(--text-dim); font-size: 0.75rem; }
+
+  .section-card {
+    background: var(--card-bg);
+    border: 1px solid var(--maroon-light);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .section-card h3 { color: var(--gold); font-size: 0.92rem; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>ಕನ್ನಡ — カンナダ語学習</h1>
+  <p>タップしてカタカナ読みを確認 → 定着度を記録</p>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-label" id="progressLabel">読み込み中…</div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div id="mainArea" class="card-area"></div>
+<div class="buttons">
+  <button class="btn btn-again" id="btnAgain" disabled>もう一度 🔁</button>
+  <button class="btn btn-got" id="btnGot" disabled>覚えた ✓</button>
+</div>
+<div class="queue-info" id="queueInfo"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+const PHRASES = [
+  // ── 挨拶 ──
+  {
+    id:1, cat:"挨拶", ja:"こんにちは", kata:"ナマスカーラ", kn:"ನಮಸ್ಕಾರ", gr:"挨拶の定型表現(ヒンドゥー語由来)",
+    words:[
+      {kata:"ナマスカーラ", kn:"ನಮಸ್ಕಾರ", pos:"感動詞", gloss:"挨拶・敬礼の定型表現。朝昼晩・別れ際どれにも使える万能挨拶"}
+    ]
+  },
+  {
+    id:2, cat:"挨拶", ja:"お元気ですか?", kata:"ヘーゲ イッディーラ?", kn:"ಹೇಗೆ ಇದ್ದೀರಾ?", gr:"疑問副詞+動詞ಇರು(二人称尊敬形)",
+    words:[
+      {kata:"ヘーゲ", kn:"ಹೇಗೆ", pos:"疑問副詞", gloss:"「どのように」。英語のhow"},
+      {kata:"イッディーラ", kn:"ಇದ್ದೀರಾ", pos:"動詞ಇರು(いる)の現在形・二人称尊敬", gloss:"ಇರು(いる/ある)の活用。-ಈರಾの語尾が「あなた(尊敬)」を表す。文末の?で疑問"}
+    ]
+  },
+  {
+    id:3, cat:"挨拶", ja:"元気です", kata:"チャンナーギッディーニ", kn:"ಚೆನ್ನಾಗಿದ್ದೇನೆ", gr:"副詞+動詞ಇರう(一人称)",
+    words:[
+      {kata:"チャンナーギ", kn:"ಚೆನ್ನಾಗಿ", pos:"副詞", gloss:"「よく・うまく」。形容詞ಚೆನ್ನಾಗಿರು(よい)の副詞形"},
+      {kata:"ッディーニ", kn:"ದ್ದೇನೆ", pos:"動詞ಇರう(いる)の現在形・一人称", gloss:"-ಏನೆの語尾が「私は」を表す"}
+    ]
+  },
+  {
+    id:4, cat:"挨拶", ja:"さようなら", kata:"ビ ビ", kn:"ಬಾ ಬಾ / ಹೋಗಿ ಬನ್ನಿ", gr:"別れの挨拶(口語: ビビ / 丁寧: ホーギ バンニ)",
+    words:[
+      {kata:"ビ ビ", kn:"ಬಾ ಬಾ", pos:"感動詞(口語)", gloss:"気軽な別れの言葉。友人・同僚向け"},
+      {kata:"ホーギ バンニ", kn:"ಹೋಗಿ ಬನ್ನಿ", pos:"動詞句(丁寧)", gloss:"「行って来てください」が語源の丁寧な別れの挨拶"}
+    ]
+  },
+  {
+    id:5, cat:"挨拶", ja:"私の名前は＿＿です", kata:"ナンナ ヘサル ___", kn:"ನನ್ನ ಹೆಸರು ___", gr:"所有代名詞+名詞(be動詞省略)",
+    words:[
+      {kata:"ナンナ", kn:"ನನ್ನ", pos:"所有代名詞", gloss:"「私の」。ನಾನು(私)の属格形"},
+      {kata:"ヘサル", kn:"ಹೆಸರು", pos:"名詞", gloss:"「名前」。カンナダ語の名詞文ではbe動詞を省略できる"}
+    ]
+  },
+  {
+    id:6, cat:"挨拶", ja:"あなたの名前は?", kata:"ニンナ ヘサル エーヌ?", kn:"ನಿನ್ನ ಹೆಸರು ಏನು?", gr:"所有代名詞+名詞+疑問詞(親しい相手向け)",
+    words:[
+      {kata:"ニンナ", kn:"ನಿನ್ನ", pos:"所有代名詞", gloss:"「あなたの」(親しい・タメ口)。ನೀನು(あなた・親称)の属格形"},
+      {kata:"ヘサル", kn:"ಹೆಸರು", pos:"名詞", gloss:"「名前」"},
+      {kata:"エーヌ", kn:"ಏನು", pos:"疑問詞", gloss:"「何」。英語のwhat"}
+    ]
+  },
+  // ── お礼・お詫び ──
+  {
+    id:7, cat:"お礼・お詫び", ja:"ありがとう", kata:"ダンニャワーダガル", kn:"ಧನ್ಯವಾದಗಳು", gr:"名詞の複数形(丁寧な感謝表現)",
+    words:[
+      {kata:"ダンニャワーダ", kn:"ಧನ್ಯವಾದ", pos:"名詞", gloss:"「感謝」(サンスクリット語由来)"},
+      {kata:"ガル", kn:"ಗಳು", pos:"複数形語尾", gloss:"複数・丁寧を表す接尾辞。ガルをつけると丁寧さが増す"}
+    ]
+  },
+  {
+    id:8, cat:"お礼・お詫び", ja:"すみません / 失礼します", kata:"クシャミーシ", kn:"ಕ್ಷಮಿಸಿ", gr:"動詞ಕ್ಷಮಿಸು(許す)の命令形・丁寧",
+    words:[
+      {kata:"クシャミーシ", kn:"ಕ್ಷಮಿಸಿ", pos:"動詞命令形(丁寧)", gloss:"「許してください」が直訳。呼びかけ・謝罪・通り抜けるときなど幅広く使う"}
+    ]
+  },
+  {
+    id:9, cat:"お礼・お詫び", ja:"ごめんなさい", kata:"クシャミシ バンニ", kn:"ಕ್ಷಮಿಸಿ ಬಿಡಿ", gr:"動詞+補助動詞(丁寧な依頼)",
+    words:[
+      {kata:"クシャミシ", kn:"ಕ್ಷಮಿಸಿ", pos:"動詞ಕ್ಷಮಿಸು(許す)の連用形", gloss:"「許して」"},
+      {kata:"バンニ/ビディ", kn:"ಬಿಡಿ", pos:"補助動詞(丁寧命令)", gloss:"「〜してください」という依頼の補助動詞"}
+    ]
+  },
+  // ── はい・いいえ ──
+  {
+    id:10, cat:"はい・いいえ", ja:"はい", kata:"ハウドゥ", kn:"ಹೌದು", gr:"肯定応答の不変化詞",
+    words:[
+      {kata:"ハウドゥ", kn:"ಹೌದು", pos:"不変化詞(応答)", gloss:"「そうです・はい」。ヒンディー語のhaa(ハー)と異なりカンナダ語固有の表現"}
+    ]
+  },
+  {
+    id:11, cat:"はい・いいえ", ja:"いいえ", kata:"ィルラ", kn:"ಇಲ್ಲ", gr:"否定の不変化詞",
+    words:[
+      {kata:"ィルラ", kn:"ಇಲ್ಲ", pos:"否定不変化詞", gloss:"「ない・いいえ」。存在の否定にも使う(ナーヌ イルラ=私はいない)"}
+    ]
+  },
+  {
+    id:12, cat:"はい・いいえ", ja:"分かりました", kata:"アルターイトゥ", kn:"ಅರ್ಥಾಯಿತು", gr:"動詞ಅರ್ಥ(理解)の完了形",
+    words:[
+      {kata:"アルター", kn:"ಅರ್ಥ", pos:"名詞・語根", gloss:"「意味・理解」(サンスクリット語由来)"},
+      {kata:"アイトゥ", kn:"ಆಯಿತು", pos:"動詞ಆಗು(なる)の完了形", gloss:"「〜になった」。直訳「理解になった」"}
+    ]
+  },
+  {
+    id:13, cat:"はい・いいえ", ja:"分かりません", kata:"アルターアーガラ", kn:"ಅರ್ಥ ಆಗಲ್ಲ", gr:"名詞+動詞の否定形",
+    words:[
+      {kata:"アルター", kn:"ಅರ್ಥ", pos:"名詞", gloss:"「意味・理解」"},
+      {kata:"アーガラ", kn:"ಆಗಲ್ಲ", pos:"動詞ಆಗು(なる)の現在否定", gloss:"-ಲ್ಲが否定を表す語尾。直訳「理解にならない」"}
+    ]
+  },
+  // ── 依頼 ──
+  {
+    id:14, cat:"依頼", ja:"〜をください", kata:"___ コッリ", kn:"___ ಕೊಡಿ", gr:"動詞ಕೊಡು(与える)の命令形・丁寧",
+    words:[
+      {kata:"コッリ/コーリ", kn:"ಕೊಡಿ", pos:"動詞ಕೊಡು(与える)の命令形(丁寧)", gloss:"「与えてください」。ミーナ コーリ(水をください)のように物の前に置く"}
+    ]
+  },
+  {
+    id:15, cat:"依頼", ja:"水をください", kata:"ニールー コッリ", kn:"ನೀರು ಕೊಡಿ", gr:"名詞+動詞命令形",
+    words:[
+      {kata:"ニールー", kn:"ನೀರು", pos:"名詞", gloss:"「水」"},
+      {kata:"コッリ", kn:"ಕೊಡಿ", pos:"動詞ಕೊಡು(与える)の命令形(丁寧)", gloss:"「ください」"}
+    ]
+  },
+  {
+    id:16, cat:"依頼", ja:"ちょっと待ってください", kata:"スコンチ イリ", kn:"ಸ್ವಲ್ಪ ಇರಿ", gr:"副詞+動詞ಇರう命令形",
+    words:[
+      {kata:"スコンチ", kn:"ಸ್ವಲ್ಪ", pos:"副詞", gloss:"「少し・ちょっと」。スワルパとも読む"},
+      {kata:"イリ", kn:"ಇರಿ", pos:"動詞ಇರう(いる)の命令形(丁寧)", gloss:"「いてください→待ってください」。ಇರu の活用"}
+    ]
+  },
+  {
+    id:17, cat:"依頼", ja:"繰り返してください", kata:"マッテ ヘーリ", kn:"ಮತ್ತೆ ಹೇಳಿ", gr:"副詞+動詞命令形",
+    words:[
+      {kata:"マッテ", kn:"ಮತ್ತೆ", pos:"副詞", gloss:"「もう一度・また」"},
+      {kata:"ヘーリ", kn:"ಹೇಳಿ", pos:"動詞ಹೇಳು(言う)の命令形(丁寧)", gloss:"「言ってください」"}
+    ]
+  },
+  {
+    id:18, cat:"依頼", ja:"いくらですか?", kata:"エシュトゥ アーグッテ?", kn:"ಎಷ್ಟು ಆಗುತ್ತೆ?", gr:"疑問副詞+動詞ಆಗu現在形",
+    words:[
+      {kata:"エシュトゥ", kn:"ಎಷ್ಟು", pos:"疑問副詞", gloss:"「いくら・どれだけ」。数量を問う"},
+      {kata:"アーグッテ", kn:"ಆಗುತ್ತೆ", pos:"動詞ಆಗu(なる)の現在形", gloss:"「〜になる」。直訳「いくらになりますか」"}
+    ]
+  },
+  // ── 日常会話 ──
+  {
+    id:19, cat:"日常会話", ja:"カンナダ語は少し話せます", kata:"コンチャ コンチャ カンナダ ゴタッツ", kn:"ಸ್ವಲ್ಪ ಸ್ವಲ್ಪ ಕನ್ನಡ ಗೊತ್ತು", gr:"副詞反復+名詞+知覚動詞",
+    words:[
+      {kata:"スコンチャ スコンチャ", kn:"ಸ್ವಲ್ಪ ಸ್ವಲ್ಪ", pos:"副詞(反復)", gloss:"「ほんの少しだけ」。同じ語を繰り返すと「わずかに」という意味が強調される"},
+      {kata:"カンナダ", kn:"ಕನ್ನಡ", pos:"固有名詞", gloss:"カンナダ語・カルナータカ州の公用語"},
+      {kata:"ゴタッツ", kn:"ಗೊತ್ತು", pos:"知覚動詞(不変)", gloss:"「分かる・知っている」。主語に関係なく形が変わらない特殊な動詞"}
+    ]
+  },
+  {
+    id:20, cat:"日常会話", ja:"日本から来ました", kata:"ナーヌ ジャパーンンダ バンディッダーニ", kn:"ನಾನು ಜಪಾನ್‌ನಿಂದ ಬಂದಿದ್ದೇನೆ", gr:"主語+出発点格+動詞完了形",
+    words:[
+      {kata:"ナーヌ", kn:"ನಾನು", pos:"一人称代名詞", gloss:"「私」"},
+      {kata:"ジャパーンンダ", kn:"ಜಪಾನ್‌ನಿಂದ", pos:"名詞+奪格語尾-ನಿಂದ", gloss:"「日本から」。-ニンダが「〜から(出発点)」を表す奪格"},
+      {kata:"バンディッダーニ", kn:"ಬಂದಿದ್ದೇನೆ", pos:"動詞ಬರu(来る)の完了形・一人称", gloss:"ಬರu(来る)の完了形。-ಇದ್ದೇನೆが「私が〜した(完了)」"}
+    ]
+  },
+  {
+    id:21, cat:"日常会話", ja:"トイレはどこですか?", kata:"ベッチャダ マネ エッリ?", kn:"ಶೌಚಾಲಯ ಎಲ್ಲಿದೆ?", gr:"名詞+疑問副詞+存在動詞",
+    words:[
+      {kata:"ショウチャーラヤ", kn:"ಶೌಚಾಲಯ", pos:"名詞", gloss:"「トイレ・洗面所」(フォーマル)。口語ではベッチャダ マネとも"},
+      {kata:"エッリデ", kn:"ಎಲ್ಲಿದೆ", pos:"疑問副詞+動詞ಇರu", gloss:"エッリ(どこ)+イデ(ある/いる)。「どこにありますか」"}
+    ]
+  },
+  {
+    id:22, cat:"日常会話", ja:"美味しい!", kata:"トゥンバ チャンナーギデ!", kn:"ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ!", gr:"副詞+形容詞+動詞",
+    words:[
+      {kata:"トゥンバ", kn:"ತುಂಬಾ", pos:"副詞", gloss:"「とても・非常に」。強調表現として頻用"},
+      {kata:"チャンナーギデ", kn:"ಚೆನ್ನಾಗಿದೆ", pos:"形容詞+動詞ಇರu", gloss:"ಚೆನ್ನಾಗಿ(よく)+ಇದೆ(ある)。「よくある→よい状態だ」"}
+    ]
+  },
+  {
+    id:23, cat:"日常会話", ja:"辛い!", kata:"ゴーラ アーギデ!", kn:"ಖಾರ ಆಗಿದೆ!", gr:"形容詞+動詞ಆಗu",
+    words:[
+      {kata:"ゴーラ", kn:"ಖಾರ", pos:"形容詞/名詞", gloss:"「辛さ・スパイシー」。食べ物の辛さを指す"},
+      {kata:"アーギデ", kn:"ಆಗಿದೆ!", pos:"動詞ಆಗu(なる)の完了進行形", gloss:"「〜になっている」→辛くなっている状態"}
+    ]
+  },
+  {
+    id:24, cat:"日常会話", ja:"会議は何時ですか?", kata:"ミーティング エシュトゥ ガンテゲ?", kn:"ಮೀಟಿಂಗ್ ಎಷ್ಟು ಗಂಟೆಗೆ?", gr:"名詞+疑問副詞+時間名詞+与格",
+    words:[
+      {kata:"ミーティング", kn:"ಮೀಟಿಂಗ್", pos:"名詞(英語借用語)", gloss:"「会議」。英語borrowingがそのまま使われる"},
+      {kata:"エシュトゥ", kn:"ಎಷ್ಟು", pos:"疑問副詞", gloss:"「いくら・何」"},
+      {kata:"ガンテゲ", kn:"ಗಂಟೆಗೆ", pos:"名詞ガンテ(時間)+与格-ゲ", gloss:"「〜時に」。ガンテ=時間/時計、-ゲが「〜に(時点)」"}
+    ]
+  },
+  // ── 数字 ──
+  {
+    id:25, cat:"数字", ja:"1・2・3", kata:"オンドゥ・エラドゥ・ムールー", kn:"ಒಂದು・ಎರಡು・ಮೂರು", gr:"基数詞(1〜3)",
+    words:[
+      {kata:"オンドゥ", kn:"ಒಂದು", pos:"数詞", gloss:"「1(イチ)」"},
+      {kata:"エラドゥ", kn:"ಎರಡು", pos:"数詞", gloss:"「2(ニ)」"},
+      {kata:"ムールー", kn:"ಮೂರು", pos:"数詞", gloss:"「3(サン)」"}
+    ]
+  },
+  {
+    id:26, cat:"数字", ja:"4・5・6", kata:"ナールー・アイドゥ・アールー", kn:"ನಾಲ್ಕು・ಐದು・ಆರು", gr:"基数詞(4〜6)",
+    words:[
+      {kata:"ナールー", kn:"ನಾಲ್ಕು", pos:"数詞", gloss:"「4(ヨン)」"},
+      {kata:"アイドゥ", kn:"ಐದು", pos:"数詞", gloss:"「5(ゴ)」"},
+      {kata:"アールー", kn:"ಆರು", pos:"数詞", gloss:"「6(ロク)」"}
+    ]
+  },
+  {
+    id:27, cat:"数字", ja:"7・8・9・10", kata:"エールー・エントゥ・オンバットゥ・ハットゥ", kn:"ಏಳು・ಎಂಟು・ಒಂಬತ್ತು・ಹತ್ತು", gr:"基数詞(7〜10)",
+    words:[
+      {kata:"エールー", kn:"ಏಳು", pos:"数詞", gloss:"「7(シチ)」"},
+      {kata:"エントゥ", kn:"ಎಂಟು", pos:"数詞", gloss:"「8(ハチ)」"},
+      {kata:"オンバットゥ", kn:"ಒಂಬತ್ತು", pos:"数詞", gloss:"「9(ク)」"},
+      {kata:"ハットゥ", kn:"ಹತ್ತು", pos:"数詞", gloss:"「10(ジュウ)」"}
+    ]
+  },
+  {
+    id:28, cat:"数字", ja:"100・1000", kata:"ノールー・サーヴィラ", kn:"ನೂರು・ಸಾವಿರ", gr:"大きな数",
+    words:[
+      {kata:"ノールー", kn:"ನೂರು", pos:"数詞", gloss:"「100(ヒャク)」"},
+      {kata:"サーヴィラ", kn:"ಸಾವಿರ", pos:"数詞", gloss:"「1000(セン)」"}
+    ]
+  },
+  // ── 追加フレーズ ──
+  {
+    id:29, cat:"日常会話", ja:"これは何ですか?", kata:"イドゥ エーヌ?", kn:"ಇದು ಏನು?", gr:"指示代名詞+疑問詞",
+    words:[
+      {kata:"イドゥ", kn:"ಇದು", pos:"指示代名詞(近称・中性)", gloss:"「これ(中性・もの)」。近くのものを指す"},
+      {kata:"エーヌ", kn:"ಏನು", pos:"疑問詞", gloss:"「何」"}
+    ]
+  },
+  {
+    id:30, cat:"日常会話", ja:"問題ありません / 大丈夫です", kata:"パルワーギラ", kn:"ಪರ್ವಾಗಿಲ್ಲ", gr:"慣用表現(否定形)",
+    words:[
+      {kata:"パルワー", kn:"ಪರ್ವಾ", pos:"名詞(借用語)", gloss:"「心配・問題」(ヒンディー語由来)"},
+      {kata:"ギラ/ギルラ", kn:"ಇಲ್ಲ", pos:"否定不変化詞", gloss:"「ない」。パルワー+イルラ→「問題ない」。ネイティブはパルワーギラと短縮して発音"}
+    ]
+  }
+];
+
+// 動詞ಇರう活用一覧 (特別カテゴリ)
+const IRRU_CONJ = [
+  {person:"一人称(私)", kata:"イッディーニ / イッデーニ", kn:"ಇದ್ದೇನೆ", note:"ナーヌ イッデーニ (私はいる)"},
+  {person:"二人称(あなた・丁寧)", kata:"イッディーラ / イッディーリ", kn:"ಇದ್ದೀರಾ", note:"ニーヴー イッディーラ (あなたはいますか?)"},
+  {person:"二人称(タメ口)", kata:"イッダーニャ", kn:"ಇದ್ದಾನ", note:"ニーヌ イッダーニャ (お前はいるか?)"},
+  {person:"三人称・男性", kata:"イッダーニャ", kn:"ಇದ್ದಾನೆ", note:"アワヌ イッダーニャ (彼はいる)"},
+  {person:"三人称・女性", kata:"イッダーリェ", kn:"ಇದ್ದಾಳೆ", note:"アワル イッダーリェ (彼女はいる)"},
+  {person:"三人称・尊敬/複数", kata:"イッダーレ", kn:"ಇದ್ದಾರೆ", note:"アワル イッダーレ (彼らはいる)"},
+  {person:"命令形・丁寧", kata:"イリ", kn:"ಇರಿ", note:"スコンチャ イリ (少し待って)"},
+];
+
+// ─────────────────────────────────────────────
+// STATE & STORAGE
+// ─────────────────────────────────────────────
+const STORAGE_KEY = 'kannada_progress_v1';
+let progress = {}; // {id: score 0-5}
+let currentCat = 'すべて';
+let currentPhrase = null;
+let revealed = false;
+let activeWordIdx = null;
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) progress = JSON.parse(raw);
+  } catch(e) {}
+}
+function saveProgress() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch(e) {}
+}
+
+// ─────────────────────────────────────────────
+// CATEGORIES
+// ─────────────────────────────────────────────
+const CATS = ['すべて', ...new Set(PHRASES.map(p => p.cat)), '動詞ಇರu活用'];
+
+function buildTabs() {
+  const el = document.getElementById('tabs');
+  el.innerHTML = '';
+  CATS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (c === currentCat ? ' active' : '');
+    btn.textContent = c;
+    btn.onclick = () => { currentCat = c; buildTabs(); updateProgress(); nextCard(); };
+    el.appendChild(btn);
+  });
+}
+
+// ─────────────────────────────────────────────
+// PROGRESS
+// ─────────────────────────────────────────────
+function updateProgress() {
+  const phrases = filteredPhrases();
+  if (currentCat === '動詞ಇರu活用') {
+    document.getElementById('progressLabel').textContent = '動詞ಇರu活用一覧';
+    document.getElementById('progressFill').style.width = '100%';
+    return;
+  }
+  const mastered = phrases.filter(p => (progress[p.id] || 0) >= 5).length;
+  const pct = phrases.length ? Math.round(mastered / phrases.length * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `定着済み ${mastered}/${phrases.length} (${pct}%)`;
+}
+
+// ─────────────────────────────────────────────
+// PHRASE SELECTION (weighted)
+// ─────────────────────────────────────────────
+function filteredPhrases() {
+  if (currentCat === 'すべて') return PHRASES;
+  if (currentCat === '動詞ಇರu活用') return [];
+  return PHRASES.filter(p => p.cat === currentCat);
+}
+
+function pickNextPhrase() {
+  const pool = filteredPhrases();
+  if (!pool.length) return null;
+  const weights = pool.map(p => Math.max(1, 6 - (progress[p.id] || 0)));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let rand = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderScoreDots(score) {
+  let html = '<div class="score-dots">';
+  for (let i = 0; i < 5; i++) {
+    html += `<div class="dot${i < score ? ' filled' : ''}"></div>`;
+  }
+  return html + '</div>';
+}
+
+function renderConjugationTable() {
+  document.getElementById('mainArea').innerHTML = `
+    <div class="section-card">
+      <h3>動詞 ಇರು (いる/ある) の人称活用</h3>
+      <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:8px;">カンナダ語で最も重要な動詞。「お元気ですか?」「少し待って」など頻出します。</p>
+      <table class="conj-table">
+        <tr><th>人称</th><th>カタカナ / カンナダ文字</th><th>例文メモ</th></tr>
+        ${IRRU_CONJ.map(r => `
+          <tr>
+            <td>${r.person}</td>
+            <td><span class="conj-kata">${r.kata}</span><br><span class="conj-kn">${r.kn}</span></td>
+            <td style="font-size:0.72rem;color:var(--text-dim)">${r.note}</td>
+          </tr>`).join('')}
+      </table>
+    </div>
+  `;
+  document.getElementById('btnAgain').disabled = true;
+  document.getElementById('btnGot').disabled = true;
+  document.getElementById('queueInfo').textContent = '';
+}
+
+function renderCard(phrase) {
+  const score = progress[phrase.id] || 0;
+  if (!revealed) {
+    document.getElementById('mainArea').innerHTML = `
+      <div class="card" id="card" onclick="revealCard()">
+        <div class="cat-badge">${phrase.cat}</div>
+        ${renderScoreDots(score)}
+        <div class="ja">${phrase.ja}</div>
+        <div class="tap-hint">タップして読み方を確認</div>
+      </div>`;
+  } else {
+    const wordsHtml = phrase.words.map((w, i) => `
+      <div class="word-chip${activeWordIdx === i ? ' active' : ''}" onclick="toggleGloss(${i})">
+        <span class="wkata">${w.kata}</span>
+        <span class="wkn">${w.kn}</span>
+      </div>`).join('');
+
+    const glossHtml = activeWordIdx !== null ? `
+      <div class="gloss-box">
+        <div class="gloss-pos">${phrase.words[activeWordIdx].pos}</div>
+        <div class="gloss-meaning">${phrase.words[activeWordIdx].gloss}</div>
+      </div>` : '';
+
+    document.getElementById('mainArea').innerHTML = `
+      <div class="card">
+        <div class="cat-badge">${phrase.cat}</div>
+        ${renderScoreDots(score)}
+        <div class="kata">${phrase.kata}</div>
+        <div class="kn">${phrase.kn}</div>
+        <div class="gr-tag">${phrase.gr}</div>
+        <div class="word-breakdown">
+          <h4>▼ 単語をタップすると品詞・意味が表示されます</h4>
+          <div class="words-row" id="wordsRow">${wordsHtml}</div>
+          <div id="glossArea">${glossHtml}</div>
+        </div>
+      </div>`;
+  }
+}
+
+function toggleGloss(idx) {
+  activeWordIdx = activeWordIdx === idx ? null : idx;
+  renderCard(currentPhrase);
+}
+
+function revealCard() {
+  if (revealed) return;
+  revealed = true;
+  activeWordIdx = null;
+  document.getElementById('btnAgain').disabled = false;
+  document.getElementById('btnGot').disabled = false;
+  renderCard(currentPhrase);
+}
+
+function nextCard() {
+  if (currentCat === '動詞ಇರu活用') { renderConjugationTable(); return; }
+  revealed = false;
+  activeWordIdx = null;
+  currentPhrase = pickNextPhrase();
+  document.getElementById('btnAgain').disabled = true;
+  document.getElementById('btnGot').disabled = true;
+  if (!currentPhrase) {
+    document.getElementById('mainArea').innerHTML = `
+      <div class="empty-state"><div class="big">🎉</div>このカテゴリのフレーズはありません</div>`;
+    document.getElementById('queueInfo').textContent = '';
+    return;
+  }
+  renderCard(currentPhrase);
+
+  const pool = filteredPhrases();
+  const remaining = pool.filter(p => (progress[p.id] || 0) < 5).length;
+  document.getElementById('queueInfo').textContent = `残り未定着: ${remaining}フレーズ`;
+}
+
+// ─────────────────────────────────────────────
+// BUTTONS
+// ─────────────────────────────────────────────
+document.getElementById('btnAgain').onclick = function() {
+  const id = currentPhrase.id;
+  progress[id] = Math.max(0, (progress[id] || 0) - 1);
+  saveProgress();
+  updateProgress();
+  nextCard();
+};
+
+document.getElementById('btnGot').onclick = function() {
+  const id = currentPhrase.id;
+  progress[id] = Math.min(5, (progress[id] || 0) + 1);
+  saveProgress();
+  updateProgress();
+  nextCard();
+};
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+loadProgress();
+buildTabs();
+updateProgress();
+nextCard();
+</script>
+</body>
+</html>
