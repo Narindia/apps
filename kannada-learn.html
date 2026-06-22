@@ -48,43 +48,50 @@
   }
 
   /* ── HOME SCREEN ── */
-  #homeScreen { padding: 16px; padding-bottom: 40px; }
+  #homeScreen { padding-bottom: 40px; }
 
-  .today-box {
+  .section-label {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin: 16px 0 8px;
+  }
+
+  .daily-block {
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .review-block {
+    background: var(--card-bg);
+    border: 1px solid var(--maroon-light);
+  }
+  .new-block {
     background: linear-gradient(135deg, var(--maroon-light), var(--maroon-dark));
     border: 1px solid var(--gold);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 16px;
   }
-  .today-box h2 { font-size: 0.8rem; color: var(--gold); margin-bottom: 6px; letter-spacing: 0.05em; }
-  .today-recommend {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--text);
-    margin-bottom: 6px;
+  .daily-block-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
   }
-  .today-sub { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 14px; }
-
-  .btn-start {
+  .daily-icon { font-size: 1.4rem; line-height: 1; padding-top: 2px; }
+  .daily-title { font-size: 0.95rem; font-weight: bold; color: var(--text); margin-bottom: 4px; }
+  .daily-preview { font-size: 0.7rem; color: var(--text-dim); line-height: 1.5; }
+  .btn-daily {
     width: 100%;
-    padding: 13px;
-    background: var(--gold);
-    color: var(--maroon-dark);
+    padding: 11px;
     border: none;
-    border-radius: 10px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
     font-weight: bold;
     cursor: pointer;
     font-family: inherit;
   }
-
-  .section-title {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    letter-spacing: 0.08em;
-    margin: 16px 0 8px;
-  }
+  .btn-review { background: var(--maroon-light); color: var(--text); border: 1px solid var(--gold); }
+  .btn-new    { background: var(--gold); color: var(--maroon-dark); }
+  .daily-sub  { font-size: 0.68rem; color: var(--text-dim); text-align: center; margin-bottom: 4px; }
 
   .cat-card {
     background: var(--card-bg);
@@ -349,20 +356,20 @@
 </header>
 
 <div id="homeScreen">
-  <div class="today-box">
-    <h2>TODAY'S STUDY</h2>
-    <div class="today-recommend" id="todayRecommend">読み込み中…</div>
-    <div class="today-sub" id="todaySub"></div>
-    <button class="btn-start" id="btnStartToday">今日の練習を始める →</button>
+  <div style="padding:16px 16px 0">
+    <div class="section-label">TODAY'S PLAN</div>
+    <div id="todayBox"></div>
   </div>
-  <div class="section-title">カテゴリ別進捗</div>
-  <div id="catList"></div>
-  <div class="section-title">文法リファレンス</div>
-  <div class="cat-special" onclick="openConjTable()">
-    <div class="cat-special-icon">📖</div>
-    <div>
-      <div class="cat-special-text">動詞 ಇರು 活用一覧</div>
-      <div class="cat-special-sub">いる/ある — 人称別の語尾変化</div>
+  <div style="padding:0 16px">
+    <div class="section-label">カテゴリ別進捗</div>
+    <div id="catList"></div>
+    <div class="section-label">文法リファレンス</div>
+    <div class="cat-special" onclick="openConjTable()">
+      <div class="cat-special-icon">📖</div>
+      <div>
+        <div class="cat-special-text">動詞 ಇರು 活用一覧</div>
+        <div class="cat-special-sub">いる/ある — 人称別の語尾変化</div>
+      </div>
     </div>
   </div>
 </div>
@@ -464,8 +471,10 @@ const CATS_ORDER = ['挨拶','お礼・お詫び','はい・いいえ','依頼',
 // ─── STORAGE ─────────────────────────────────────────
 const KEY_PROGRESS = 'kannada_progress_v1';
 const KEY_STREAK   = 'kannada_streak_v1';
+const KEY_DAILY    = 'kannada_daily_v1'; // {"YYYY-MM-DD": [id, id, id]}
 let progress = {};
 let streak = {count:0, lastDate:''};
+let daily = {};
 
 function loadStorage() {
   try {
@@ -473,6 +482,8 @@ function loadStorage() {
     if (p) progress = JSON.parse(p);
     const s = localStorage.getItem(KEY_STREAK);
     if (s) streak = JSON.parse(s);
+    const d = localStorage.getItem(KEY_DAILY);
+    if (d) daily = JSON.parse(d);
   } catch(e) {}
 }
 function saveProgress() {
@@ -480,6 +491,9 @@ function saveProgress() {
 }
 function saveStreak() {
   try { localStorage.setItem(KEY_STREAK, JSON.stringify(streak)); } catch(e) {}
+}
+function saveDaily() {
+  try { localStorage.setItem(KEY_DAILY, JSON.stringify(daily)); } catch(e) {}
 }
 
 // ─── STREAK ──────────────────────────────────────────
@@ -497,27 +511,91 @@ function renderStreakBadge() {
   document.getElementById('streakBadge').textContent = '🔥 ' + streak.count + '日';
 }
 
+// ─── DAILY PLAN ──────────────────────────────────────
+const DAILY_NEW_COUNT = 3;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function getDailyPlan() {
+  const today = todayStr();
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+
+  // 今日の新規フレーズ（まだなければ割り当て）
+  if (!daily[today]) {
+    const usedIds = new Set(Object.values(daily).flat());
+    const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
+    const picked = shuffle(unlearned).slice(0, DAILY_NEW_COUNT);
+    daily[today] = picked.map(p => p.id);
+    saveDaily();
+  }
+
+  return {
+    newIds:    daily[today] || [],
+    reviewIds: daily[yesterday] || []
+  };
+}
+
+function phrasePreviews(ids) {
+  return ids.map(id => {
+    const p = PHRASES.find(ph => ph.id === id);
+    return p ? p.kata : '';
+  }).join('  /  ');
+}
+
 // ─── HOME ────────────────────────────────────────────
 function renderHome() {
   renderStreakBadge();
-  let bestCat = '挨拶', maxRemaining = 0;
-  CATS_ORDER.forEach(c => {
-    const r = PHRASES.filter(p => p.cat===c && (progress[p.id]||0)<5).length;
-    if (r > maxRemaining) { maxRemaining = r; bestCat = c; }
-  });
-  const totalMastered  = PHRASES.filter(p => (progress[p.id]||0)>=5).length;
-  const totalRemaining = PHRASES.length - totalMastered;
+  const { newIds, reviewIds } = getDailyPlan();
+  const totalMastered = PHRASES.filter(p => (progress[p.id]||0)>=5).length;
 
-  if (totalRemaining === 0) {
-    document.getElementById('todayRecommend').textContent = '全フレーズ定着済み 🎉';
-    document.getElementById('todaySub').textContent = '復習モードで続けましょう';
-    document.getElementById('btnStartToday').onclick = () => openStudy('すべて');
-  } else {
-    document.getElementById('todayRecommend').textContent = 'おすすめ: 「' + bestCat + '」カテゴリ';
-    document.getElementById('todaySub').textContent =
-      '全体 ' + totalMastered + '/' + PHRASES.length + ' 定着済み  ·  未定着 ' + totalRemaining + 'フレーズ';
-    document.getElementById('btnStartToday').onclick = () => openStudy(bestCat);
+  const box = document.getElementById('todayBox');
+  const allDone = PHRASES.filter(p => !Object.values(daily).flat().includes(p.id)).length === 0
+               && PHRASES.length - totalMastered === 0;
+
+  let html = '';
+
+  // 復習ボックス
+  if (reviewIds.length > 0) {
+    html += `
+    <div class="daily-block review-block">
+      <div class="daily-block-header">
+        <span class="daily-icon">🔄</span>
+        <div>
+          <div class="daily-title">昨日の復習 (${reviewIds.length}語)</div>
+          <div class="daily-preview">${phrasePreviews(reviewIds)}</div>
+        </div>
+      </div>
+      <button class="btn-daily btn-review" onclick="openStudyByIds(${JSON.stringify(reviewIds)}, '昨日の復習')">復習する →</button>
+    </div>`;
   }
+
+  // 新規ボックス
+  const remaining = PHRASES.filter(p => !Object.values(daily).flat().includes(p.id)).length;
+  if (newIds.length > 0) {
+    html += `
+    <div class="daily-block new-block">
+      <div class="daily-block-header">
+        <span class="daily-icon">✨</span>
+        <div>
+          <div class="daily-title">今日の新規 (${newIds.length}語)</div>
+          <div class="daily-preview">${phrasePreviews(newIds)}</div>
+        </div>
+      </div>
+      <button class="btn-daily btn-new" onclick="openStudyByIds(${JSON.stringify(newIds)}, '今日の新規')">学ぶ →</button>
+    </div>`;
+  } else {
+    html += `<div class="daily-block new-block"><div style="text-align:center;padding:10px;color:var(--gold)">🎉 全フレーズ学習済み！カテゴリ別で復習しましょう</div></div>`;
+  }
+
+  html += `<div class="daily-sub">全体進捗: ${totalMastered}/${PHRASES.length} 定着済み　残り未学習: ${remaining}語</div>`;
+  box.innerHTML = html;
 
   const list = document.getElementById('catList');
   list.innerHTML = '';
@@ -536,16 +614,31 @@ function renderHome() {
 function openConjTable() { openStudy('動詞ಇರu活用'); }
 
 // ─── STUDY ───────────────────────────────────────────
-let currentCat = 'すべて';
+let currentCat   = 'すべて';
+let currentIds   = null; // null=カテゴリ, array=IDリスト指定
+let currentTitle = '';
 let currentPhrase = null;
 let revealed = false;
 let activeWordIdx = null;
 
 function openStudy(cat) {
-  currentCat = cat;
+  currentCat   = cat;
+  currentIds   = null;
+  currentTitle = cat;
   document.getElementById('homeScreen').style.display = 'none';
   document.getElementById('studyScreen').style.display = 'block';
   document.getElementById('studyTitle').textContent = cat;
+  buildTabs(); updateProgress(); nextCard();
+  recordPractice();
+}
+
+function openStudyByIds(ids, title) {
+  currentCat   = '__daily__';
+  currentIds   = ids;
+  currentTitle = title;
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('studyScreen').style.display = 'block';
+  document.getElementById('studyTitle').textContent = title;
   buildTabs(); updateProgress(); nextCard();
   recordPractice();
 }
@@ -562,11 +655,17 @@ const ALL_TABS = ['すべて',...CATS_ORDER,'動詞ಇರu活用'];
 function buildTabs() {
   const el = document.getElementById('tabs');
   el.innerHTML = '';
+  // デイリーモードはタブ非表示（タイトルだけ表示）
+  if (currentCat === '__daily__') {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
   ALL_TABS.forEach(c => {
     const btn = document.createElement('button');
     btn.className = 'tab' + (c===currentCat?' active':'');
     btn.textContent = c;
-    btn.onclick = () => { currentCat=c; buildTabs(); updateProgress(); nextCard(); };
+    btn.onclick = () => { currentCat=c; currentIds=null; buildTabs(); updateProgress(); nextCard(); };
     el.appendChild(btn);
   });
   const active = el.querySelector('.tab.active');
@@ -587,6 +686,7 @@ function updateProgress() {
 }
 
 function filteredPhrases() {
+  if (currentIds) return PHRASES.filter(p => currentIds.includes(p.id));
   if (currentCat==='すべて') return PHRASES;
   if (currentCat==='動詞ಇರu活用') return [];
   return PHRASES.filter(p=>p.cat===currentCat);
@@ -696,7 +796,8 @@ function nextCard() {
   document.getElementById('btnAgain').disabled=true;
   document.getElementById('btnGot').disabled=true;
   if (!currentPhrase) {
-    document.getElementById('mainArea').innerHTML=`<div class="empty-state"><div class="big">🎉</div>このカテゴリのフレーズはありません</div>`;
+    const msg = currentCat==='__daily__' ? '全フレーズ完了！ホームに戻ってください' : 'このカテゴリのフレーズはありません';
+    document.getElementById('mainArea').innerHTML=`<div class="empty-state"><div class="big">🎉</div>${msg}</div>`;
     document.getElementById('queueInfo').textContent='';
     return;
   }
