@@ -34,6 +34,7 @@
     justify-content: space-between;
   }
   header h1 { font-size: 1.1rem; color: var(--gold); }
+  .header-right { display: flex; align-items: center; gap: 8px; }
   .streak-badge {
     display: flex;
     align-items: center;
@@ -45,6 +46,81 @@
     font-size: 0.85rem;
     color: var(--gold-light);
     font-weight: bold;
+  }
+  .btn-settings {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+  }
+
+  /* ── SETTINGS MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--card-bg);
+    border-top: 2px solid var(--gold);
+    border-radius: 16px 16px 0 0;
+    padding: 20px 20px 40px;
+    width: 100%;
+  }
+  .modal-sheet h2 {
+    font-size: 0.95rem;
+    color: var(--gold);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .setting-row {
+    margin-bottom: 20px;
+  }
+  .setting-label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .count-selector {
+    display: flex;
+    gap: 8px;
+  }
+  .count-btn {
+    flex: 1;
+    padding: 10px 4px;
+    border-radius: 8px;
+    border: 1px solid var(--maroon-light);
+    background: var(--maroon-dark);
+    color: var(--text-dim);
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+  }
+  .count-btn.selected {
+    background: var(--gold);
+    color: var(--maroon-dark);
+    border-color: var(--gold);
+    font-weight: bold;
+  }
+  .btn-close-modal {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    background: var(--maroon-light);
+    color: var(--text);
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
   }
 
   /* ── HOME SCREEN ── */
@@ -352,8 +428,27 @@
 
 <header>
   <h1>ಕನ್ನಡ カンナダ語</h1>
-  <div class="streak-badge" id="streakBadge">🔥 0日</div>
+  <div class="header-right">
+    <div class="streak-badge" id="streakBadge">🔥 0日</div>
+    <button class="btn-settings" onclick="openSettings()">⚙️</button>
+  </div>
 </header>
+
+<!-- 設定モーダル -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsIfOutside(event)">
+  <div class="modal-sheet">
+    <h2>⚙️ 学習設定</h2>
+    <div class="setting-row">
+      <div class="setting-label">✨ 今日の新規 — 1日に学ぶ語数</div>
+      <div class="count-selector" id="newCountSelector"></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">🔄 昨日の復習 — 復習する語数 (0=全て)</div>
+      <div class="count-selector" id="reviewCountSelector"></div>
+    </div>
+    <button class="btn-close-modal" onclick="closeSettings()">閉じる</button>
+  </div>
+</div>
 
 <div id="homeScreen">
   <div style="padding:16px 16px 0">
@@ -471,10 +566,12 @@ const CATS_ORDER = ['挨拶','お礼・お詫び','はい・いいえ','依頼',
 // ─── STORAGE ─────────────────────────────────────────
 const KEY_PROGRESS = 'kannada_progress_v1';
 const KEY_STREAK   = 'kannada_streak_v1';
-const KEY_DAILY    = 'kannada_daily_v1'; // {"YYYY-MM-DD": [id, id, id]}
+const KEY_DAILY    = 'kannada_daily_v1';
+const KEY_SETTINGS = 'kannada_settings_v1';
 let progress = {};
 let streak = {count:0, lastDate:''};
 let daily = {};
+let settings = {newCount: 3, reviewCount: 0}; // reviewCount 0=全て
 
 function loadStorage() {
   try {
@@ -484,6 +581,8 @@ function loadStorage() {
     if (s) streak = JSON.parse(s);
     const d = localStorage.getItem(KEY_DAILY);
     if (d) daily = JSON.parse(d);
+    const c = localStorage.getItem(KEY_SETTINGS);
+    if (c) settings = {...settings, ...JSON.parse(c)};
   } catch(e) {}
 }
 function saveProgress() {
@@ -494,6 +593,37 @@ function saveStreak() {
 }
 function saveDaily() {
   try { localStorage.setItem(KEY_DAILY, JSON.stringify(daily)); } catch(e) {}
+}
+function saveSettings() {
+  try { localStorage.setItem(KEY_SETTINGS, JSON.stringify(settings)); } catch(e) {}
+}
+
+// ─── SETTINGS UI ─────────────────────────────────────
+function openSettings() {
+  renderCountSelector('newCountSelector',    [1,2,3,5,7,10], settings.newCount,    v => { settings.newCount = v;    saveSettings(); });
+  renderCountSelector('reviewCountSelector', [0,1,2,3,5,7],  settings.reviewCount, v => { settings.reviewCount = v; saveSettings(); });
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+  renderHome();
+}
+function closeSettingsIfOutside(e) {
+  if (e.target === document.getElementById('settingsModal')) closeSettings();
+}
+function renderCountSelector(id, options, current, onChange) {
+  const el = document.getElementById(id);
+  el.innerHTML = options.map(v => `
+    <button class="count-btn${v===current?' selected':''}" onclick="selectCount('${id}', ${v}, this)">
+      ${v === 0 ? '全て' : v}
+    </button>`).join('');
+  el._onChange = onChange;
+}
+function selectCount(id, value, btn) {
+  const el = document.getElementById(id);
+  el.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  el._onChange(value);
 }
 
 // ─── STREAK ──────────────────────────────────────────
@@ -512,8 +642,6 @@ function renderStreakBadge() {
 }
 
 // ─── DAILY PLAN ──────────────────────────────────────
-const DAILY_NEW_COUNT = 3;
-
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length-1; i > 0; i--) {
@@ -527,18 +655,22 @@ function getDailyPlan() {
   const today = todayStr();
   const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
 
-  // 今日の新規フレーズ（まだなければ割り当て）
+  // 今日の新規フレーズ（まだなければ設定値の語数で割り当て）
   if (!daily[today]) {
     const usedIds = new Set(Object.values(daily).flat());
     const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
-    const picked = shuffle(unlearned).slice(0, DAILY_NEW_COUNT);
+    const picked = shuffle(unlearned).slice(0, settings.newCount);
     daily[today] = picked.map(p => p.id);
     saveDaily();
   }
 
+  // 復習: settings.reviewCount === 0 なら昨日の全語、それ以外は先頭N語
+  const allReview = daily[yesterday] || [];
+  const reviewIds = settings.reviewCount === 0 ? allReview : allReview.slice(0, settings.reviewCount);
+
   return {
-    newIds:    daily[today] || [],
-    reviewIds: daily[yesterday] || []
+    newIds: daily[today] || [],
+    reviewIds
   };
 }
 
