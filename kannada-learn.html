@@ -817,9 +817,29 @@ document.getElementById('btnGot').onclick=function(){
   saveProgress(); updateProgress(); nextCard();
 };
 
+// ─── UPDATE CHECK ────────────────────────────────────
+const APP_VERSION = '20260622-003';
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(location.href + '?_=' + Date.now(), {cache: 'no-store'});
+    const text = await res.text();
+    const m = text.match(/APP_VERSION = '([^']+)'/);
+    if (m && m[1] !== APP_VERSION) {
+      const banner = document.createElement('div');
+      banner.id = 'updateBanner';
+      banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--gold);color:var(--maroon-dark);padding:14px 16px;text-align:center;font-weight:bold;font-size:0.9rem;z-index:999;cursor:pointer;font-family:inherit;';
+      banner.innerHTML = '🆕 アップデートがあります。タップして更新';
+      banner.onclick = () => location.reload(true);
+      document.body.appendChild(banner);
+    }
+  } catch(e) {}
+}
+
 // ─── INIT ────────────────────────────────────────────
 loadStorage();
 renderHome();
+checkForUpdate();
 </script>
 </body>
 </html>
