@@ -389,17 +389,18 @@
   .gloss-box .gloss-pos { font-size: 0.65rem; color: var(--gold); margin-bottom: 3px; }
   .gloss-box .gloss-meaning { font-size: 0.8rem; color: var(--text); }
 
-  .buttons { display: flex; gap: 10px; padding: 10px 16px; }
+  .buttons { display: flex; gap: 8px; padding: 10px 16px; }
   .btn {
     flex: 1; padding: 13px;
     border: none; border-radius: 10px;
-    font-size: 0.9rem; font-weight: bold;
+    font-size: 0.85rem; font-weight: bold;
     cursor: pointer; font-family: inherit;
     transition: opacity 0.15s;
   }
   .btn:active { opacity: 0.8; }
-  .btn-again { background: var(--maroon-light); color: var(--text); }
-  .btn-got { background: var(--gold); color: var(--maroon-dark); }
+  .btn-again { background: var(--maroon-light); color: var(--text); flex: 1.1; }
+  .btn-skip  { background: var(--maroon-dark); color: var(--text-dim); border: 1px solid var(--maroon-light); flex: 0.9; }
+  .btn-got   { background: var(--gold); color: var(--maroon-dark); flex: 1.1; }
   .btn:disabled { opacity: 0.35; cursor: default; }
 
   .queue-info { text-align: center; font-size: 0.7rem; color: var(--text-dim); padding: 2px 16px 10px; }
@@ -482,7 +483,8 @@
   <div id="mainArea" class="card-area"></div>
   <div class="buttons">
     <button class="btn btn-again" id="btnAgain" disabled>もう一度 🔁</button>
-    <button class="btn btn-got" id="btnGot" disabled>覚えた ✓</button>
+    <button class="btn btn-skip"  id="btnSkip"  disabled>次へ →</button>
+    <button class="btn btn-got"   id="btnGot"   disabled>覚えた ✓</button>
   </div>
   <div class="queue-info" id="queueInfo"></div>
 </div>
@@ -916,6 +918,7 @@ function revealCard() {
   if (revealed) return;
   revealed=true; activeWordIdx=null;
   document.getElementById('btnAgain').disabled=false;
+  document.getElementById('btnSkip').disabled=false;
   document.getElementById('btnGot').disabled=false;
   renderCard(currentPhrase);
 }
@@ -926,6 +929,7 @@ function nextCard() {
   revealed=false; activeWordIdx=null;
   currentPhrase=pickNextPhrase();
   document.getElementById('btnAgain').disabled=true;
+  document.getElementById('btnSkip').disabled=true;
   document.getElementById('btnGot').disabled=true;
   if (!currentPhrase) {
     const msg = currentCat==='__daily__' ? '全フレーズ完了！ホームに戻ってください' : 'このカテゴリのフレーズはありません';
@@ -943,6 +947,9 @@ document.getElementById('btnAgain').onclick=function(){
   progress[id]=Math.max(0,(progress[id]||0)-1);
   saveProgress(); updateProgress(); nextCard();
 };
+document.getElementById('btnSkip').onclick=function(){
+  nextCard(); // スコア変更なしで次へ
+};
 document.getElementById('btnGot').onclick=function(){
   const id=currentPhrase.id;
   progress[id]=Math.min(5,(progress[id]||0)+1);
@@ -950,7 +957,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260622-005';
+const APP_VERSION = '20260622-006';
 
 async function checkForUpdate() {
   try {
