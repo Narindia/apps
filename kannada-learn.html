@@ -350,43 +350,59 @@
 
   .word-breakdown {
     width: 100%;
-    margin-top: 8px;
+    margin-top: 10px;
     border-top: 1px solid var(--maroon-light);
     padding-top: 10px;
+    text-align: left;
   }
   .word-breakdown h4 {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     color: var(--text-dim);
     margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .word-row {
+    background: var(--maroon-dark);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+  .word-row-top {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+  .word-row .wkata { font-size: 0.85rem; color: var(--gold-light); font-weight: bold; }
+  .word-row .wkn   { font-size: 0.72rem; color: var(--text-dim); }
+  .word-row .wpos  { font-size: 0.6rem; color: var(--gold); background: var(--maroon-light); padding: 1px 6px; border-radius: 6px; margin-left: auto; }
+  .word-row .wgloss { font-size: 0.75rem; color: var(--text); line-height: 1.5; }
+
+  .related-block {
+    width: 100%;
+    margin-top: 10px;
+    border-top: 1px solid var(--maroon-light);
+    padding-top: 10px;
     text-align: left;
   }
-  .words-row { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-  .word-chip {
+  .related-block h4 {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  .related-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .related-chip {
     background: var(--maroon-dark);
     border: 1px solid var(--maroon-light);
-    border-radius: 8px;
-    padding: 5px 10px;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
     cursor: pointer;
-    text-align: center;
-    transition: border-color 0.2s;
-    min-width: 55px;
   }
-  .word-chip:hover, .word-chip.active { border-color: var(--gold); }
-  .word-chip .wkata { font-size: 0.78rem; color: var(--gold-light); display: block; }
-  .word-chip .wkn { font-size: 0.68rem; color: var(--text-dim); display: block; }
-
-  .gloss-box {
-    width: 100%;
-    margin-top: 8px;
-    background: var(--maroon-dark);
-    border: 1px solid var(--gold);
-    border-radius: 8px;
-    padding: 8px 12px;
-    text-align: left;
-    animation: fadeIn 0.15s ease;
-  }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
-  .gloss-box .gloss-pos { font-size: 0.65rem; color: var(--gold); margin-bottom: 3px; }
+  .related-chip:active { border-color: var(--gold); color: var(--gold); }
   .gloss-box .gloss-meaning { font-size: 0.8rem; color: var(--text); }
 
   .buttons { display: flex; gap: 8px; padding: 10px 16px; }
@@ -749,11 +765,10 @@ function openConjTable() { openStudy('動詞ಇರu活用'); }
 
 // ─── STUDY ───────────────────────────────────────────
 let currentCat   = 'すべて';
-let currentIds   = null; // null=カテゴリ, array=IDリスト指定
+let currentIds   = null;
 let currentTitle = '';
 let currentPhrase = null;
 let revealed = false;
-let activeWordIdx = null;
 
 function openStudy(cat) {
   currentCat   = cat;
@@ -871,6 +886,11 @@ function renderConjugationTable() {
   document.getElementById('queueInfo').textContent='';
 }
 
+function findRelated(phrase) {
+  const myKns = new Set(phrase.words.map(w => w.kn));
+  return PHRASES.filter(p => p.id !== phrase.id && p.words.some(w => myKns.has(w.kn))).slice(0, 4);
+}
+
 function renderCard(phrase) {
   const score = progress[phrase.id]||0;
   if (!revealed) {
@@ -883,14 +903,22 @@ function renderCard(phrase) {
       </div>`;
   } else {
     const safeKn = phrase.kn.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const wordsHtml = phrase.words.map((w,i)=>`
-      <div class="word-chip${activeWordIdx===i?' active':''}" onclick="toggleGloss(${i})">
-        <span class="wkata">${w.kata}</span><span class="wkn">${w.kn}</span>
+    const wordsHtml = phrase.words.map(w => `
+      <div class="word-row">
+        <div class="word-row-top">
+          <span class="wkata">${w.kata}</span>
+          <span class="wkn">${w.kn}</span>
+          <span class="wpos">${w.pos}</span>
+        </div>
+        <div class="wgloss">${w.gloss}</div>
       </div>`).join('');
-    const glossHtml = activeWordIdx!==null ? `
-      <div class="gloss-box">
-        <div class="gloss-pos">${phrase.words[activeWordIdx].pos}</div>
-        <div class="gloss-meaning">${phrase.words[activeWordIdx].gloss}</div>
+    const related = findRelated(phrase);
+    const relatedHtml = related.length ? `
+      <div class="related-block">
+        <h4>🔗 同じ単語を使うフレーズ</h4>
+        <div class="related-chips">
+          ${related.map(p=>`<span class="related-chip" onclick="jumpToPhrase(${p.id})">${p.ja}</span>`).join('')}
+        </div>
       </div>` : '';
     document.getElementById('mainArea').innerHTML = `
       <div class="card">
@@ -901,22 +929,25 @@ function renderCard(phrase) {
         <div class="gr-tag">${phrase.gr}</div>
         <button class="audio-btn" id="audioBtn" onclick="speak('${safeKn}')">🔊 発音を聞く</button>
         <div class="word-breakdown">
-          <h4>▼ 単語をタップすると品詞・意味が表示されます</h4>
-          <div class="words-row">${wordsHtml}</div>
-          <div id="glossArea">${glossHtml}</div>
+          <h4>単語の内訳</h4>
+          ${wordsHtml}
         </div>
+        ${relatedHtml}
       </div>`;
   }
 }
 
-function toggleGloss(idx) {
-  activeWordIdx = activeWordIdx===idx ? null : idx;
+function jumpToPhrase(id) {
+  const p = PHRASES.find(ph => ph.id === id);
+  if (!p) return;
+  currentPhrase = p;
+  revealed = true;
   renderCard(currentPhrase);
 }
 
 function revealCard() {
   if (revealed) return;
-  revealed=true; activeWordIdx=null;
+  revealed=true;
   document.getElementById('btnAgain').disabled=false;
   document.getElementById('btnSkip').disabled=false;
   document.getElementById('btnGot').disabled=false;
@@ -926,7 +957,7 @@ function revealCard() {
 function nextCard() {
   if (currentCat==='動詞ಇರu活用') { renderConjugationTable(); return; }
   if (window.speechSynthesis) speechSynthesis.cancel();
-  revealed=false; activeWordIdx=null;
+  revealed=false;
   currentPhrase=pickNextPhrase();
   document.getElementById('btnAgain').disabled=true;
   document.getElementById('btnSkip').disabled=true;
@@ -945,7 +976,13 @@ function nextCard() {
 document.getElementById('btnAgain').onclick=function(){
   const id=currentPhrase.id;
   progress[id]=Math.max(0,(progress[id]||0)-1);
-  saveProgress(); updateProgress(); nextCard();
+  saveProgress(); updateProgress();
+  // 同じカードの表に戻る
+  revealed=false;
+  document.getElementById('btnAgain').disabled=true;
+  document.getElementById('btnSkip').disabled=true;
+  document.getElementById('btnGot').disabled=true;
+  renderCard(currentPhrase);
 };
 document.getElementById('btnSkip').onclick=function(){
   nextCard(); // スコア変更なしで次へ
@@ -957,7 +994,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260622-007';
+const APP_VERSION = '20260622-008';
 
 async function checkForUpdate() {
   try {
