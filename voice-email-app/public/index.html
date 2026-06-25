@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>音声入力メモ送信アプリ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Meiryo, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 36px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 1.5rem;
+      color: #1a202c;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+    .mic-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #4299e1;
+      color: white;
+      margin-bottom: 20px;
+    }
+    .mic-btn:hover { background: #3182ce; }
+    .mic-btn.recording {
+      background: #e53e3e;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
+    }
+    .mic-icon { font-size: 1.4rem; }
+    .status {
+      text-align: center;
+      font-size: 0.88rem;
+      color: #718096;
+      margin-bottom: 16px;
+      min-height: 20px;
+    }
+    .status.error { color: #e53e3e; }
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      color: #2d3748;
+    }
+    textarea:focus { border-color: #4299e1; }
+    textarea::placeholder { color: #a0aec0; }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-download {
+      background: #48bb78;
+      color: white;
+    }
+    .btn-download:hover { background: #38a169; }
+    .btn-email {
+      background: #667eea;
+      color: white;
+    }
+    .btn-email:hover { background: #5a67d8; }
+    .btn-clear {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+    .btn-clear:hover { background: #cbd5e0; }
+    .email-section {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f7fafc;
+      border-radius: 10px;
+      display: none;
+    }
+    .email-section.visible { display: block; }
+    .email-section label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 6px;
+    }
+    .email-section input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
+    }
+    .email-section input:focus { border-color: #667eea; }
+    .btn-send {
+      width: 100%;
+      padding: 12px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-send:hover { background: #5a67d8; }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #2d3748;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+      z-index: 100;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: #38a169; }
+    .toast.error { background: #e53e3e; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎤 音声入力メモアプリ</h1>
+    <p class="subtitle">マイクボタンを押して話しかけてください。テキストに変換します。</p>
+
+    <button class="mic-btn" id="micBtn">
+      <span class="mic-icon">🎙️</span>
+      <span id="micLabel">録音開始</span>
+    </button>
+
+    <p class="status" id="status">マイクボタンを押すと録音が始まります</p>
+
+    <textarea id="transcript" placeholder="ここに音声の内容が表示されます。直接入力もできます。"></textarea>
+
+    <div class="actions">
+      <button class="btn btn-download" id="downloadBtn">📄 テキストで保存</button>
+      <button class="btn btn-email" id="emailToggleBtn">📧 メール送信</button>
+      <button class="btn btn-clear" id="clearBtn">🗑️ クリア</button>
+    </div>
+
+    <div class="email-section" id="emailSection">
+      <label for="emailTo">送信先メールアドレス</label>
+      <input type="email" id="emailTo" placeholder="example@company.com" />
+      <label for="emailSubject">件名</label>
+      <input type="text" id="emailSubject" placeholder="音声入力メモ" />
+      <button class="btn-send" id="sendBtn">送信する</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const micBtn = document.getElementById('micBtn');
+    const micLabel = document.getElementById('micLabel');
+    const statusEl = document.getElementById('status');
+    const transcriptEl = document.getElementById('transcript');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const emailToggleBtn = document.getElementById('emailToggleBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const emailSection = document.getElementById('emailSection');
+    const sendBtn = document.getElementById('sendBtn');
+    const toast = document.getElementById('toast');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      statusEl.textContent = 'このブラウザは音声認識に対応していません。Google Chromeをお使いください。';
+      statusEl.classList.add('error');
+      micBtn.disabled = true;
+    }
+
+    let recognition;
+    let isRecording = false;
+    let interimText = '';
+
+    function initRecognition() {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        micBtn.classList.add('recording');
+        micLabel.textContent = '録音中... (クリックで停止)';
+        statusEl.textContent = '🔴 録音中です。話してください...';
+        statusEl.classList.remove('error');
+      };
+
+      recognition.onresult = (event) => {
+        let finalText = '';
+        interimText = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalText += event.results[i][0].transcript;
+          } else {
+            interimText += event.results[i][0].transcript;
+          }
+        }
+        if (finalText) {
+          transcriptEl.value += finalText;
+        }
+        statusEl.textContent = interimText
+          ? `認識中: ${interimText}`
+          : '🔴 録音中です。話してください...';
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error === 'no-speech') return;
+        statusEl.textContent = `エラー: ${event.error}`;
+        statusEl.classList.add('error');
+        stopRecording();
+      };
+
+      recognition.onend = () => {
+        if (isRecording) {
+          recognition.start();
+        }
+      };
+    }
+
+    function startRecording() {
+      initRecognition();
+      recognition.start();
+    }
+
+    function stopRecording() {
+      isRecording = false;
+      if (recognition) recognition.stop();
+      micBtn.classList.remove('recording');
+      micLabel.textContent = '録音開始';
+      statusEl.textContent = '録音停止しました';
+    }
+
+    micBtn.addEventListener('click', () => {
+      if (isRecording) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const text = transcriptEl.value.trim();
+      if (!text) { showToast('テキストがありません', 'error'); return; }
+      const now = new Date();
+      const filename = `memo_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}.txt`;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('テキストファイルを保存しました', 'success');
+    });
+
+    emailToggleBtn.addEventListener('click', () => {
+      emailSection.classList.toggle('visible');
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (isRecording) stopRecording();
+      transcriptEl.value = '';
+      statusEl.textContent = 'マイクボタンを押すと録音が始まります';
+    });
+
+    sendBtn.addEventListener('click', async () => {
+      const to = document.getElementById('emailTo').value.trim();
+      const subject = document.getElementById('emailSubject').value.trim() || '音声入力メモ';
+      const text = transcriptEl.value.trim();
+      if (!to) { showToast('送信先アドレスを入力してください', 'error'); return; }
+      if (!text) { showToast('送信するテキストがありません', 'error'); return; }
+
+      sendBtn.textContent = '送信中...';
+      sendBtn.disabled = true;
+      try {
+        const res = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to, subject, text }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('メールを送信しました', 'success');
+        } else {
+          showToast(data.error || '送信失敗', 'error');
+        }
+      } catch {
+        showToast('サーバーに接続できません', 'error');
+      } finally {
+        sendBtn.textContent = '送信する';
+        sendBtn.disabled = false;
+      }
+    });
+
+    function showToast(msg, type = '') {
+      toast.textContent = msg;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => { toast.className = 'toast'; }, 3000);
+    }
+  </script>
+</body>
+</html>
