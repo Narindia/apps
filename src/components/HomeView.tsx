@@ -56,6 +56,22 @@ export function HomeView({ patients, history, onNewEntry, onViewEntry, onHistory
 
       {tab === 'new' && (
         <div className="home-actions">
+          {patients.length === 0 && (
+            <div className="setup-banner">
+              <div style={{ fontSize: 36, marginBottom: 10 }}>👨‍👩‍👧‍👦</div>
+              <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
+                まず家族を登録しましょう
+              </div>
+              <p style={{ margin: '0 0 16px 0', fontSize: 13, opacity: 0.9, lineHeight: 1.7 }}>
+                右上の <strong>⚙</strong> ボタンから家族メンバーと常備薬を登録してください。
+                登録すると、症状カードを素早く作成できます。
+              </p>
+              <div style={{ fontSize: 12, opacity: 0.75 }}>
+                ※ データはこのスマホの中だけに保存されます
+              </div>
+            </div>
+          )}
+
           <div style={{
             background: 'var(--navy)',
             borderRadius: 'var(--radius)',

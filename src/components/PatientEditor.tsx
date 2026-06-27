@@ -5,8 +5,70 @@ import { calcAge } from '../utils/dateHelpers'
 
 interface Props {
   patients: Patient[]
-  onChange: (patients: Patient[]) => void  // called on every mutation — auto-saves
+  onChange: (patients: Patient[]) => void
   onClose: () => void
+}
+
+// Three-select date picker — much easier on mobile than native date input
+function BirthDatePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parts = value ? value.split('-') : ['', '', '']
+  const selYear = parts[0] ?? ''
+  const selMonth = parts[1] ? String(parseInt(parts[1])) : ''
+  const selDay = parts[2] ? String(parseInt(parts[2])) : ''
+
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: currentYear - 1940 + 1 }, (_, i) => currentYear - i)
+  const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const daysInMonth = selYear && selMonth
+    ? new Date(parseInt(selYear), parseInt(selMonth), 0).getDate()
+    : 31
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
+
+  const emit = (y: string, m: string, d: string) => {
+    if (y && m && d) {
+      onChange(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)
+    } else if (y && m) {
+      onChange(`${y}-${m.padStart(2, '0')}-01`)
+    } else {
+      onChange('')
+    }
+  }
+
+  const selectStyle: React.CSSProperties = {
+    flex: 1,
+    padding: '10px 6px',
+    border: '1px solid var(--gray-300)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 14,
+    background: 'white',
+    color: 'var(--gray-700)',
+    fontFamily: 'inherit',
+    WebkitAppearance: 'none',
+    appearance: 'none',
+    textAlign: 'center',
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 6 }}>
+      <select style={selectStyle} value={selYear} onChange={e => emit(e.target.value, selMonth, selDay)}>
+        <option value="">年</option>
+        {years.map(y => <option key={y} value={y}>{y}年</option>)}
+      </select>
+      <select style={selectStyle} value={selMonth} onChange={e => emit(selYear, e.target.value, selDay)}>
+        <option value="">月</option>
+        {months.map(m => <option key={m} value={String(m)}>{m}月</option>)}
+      </select>
+      <select
+        style={selectStyle}
+        value={selDay}
+        onChange={e => emit(selYear, selMonth, e.target.value)}
+        disabled={!selYear || !selMonth}
+      >
+        <option value="">日</option>
+        {days.map(d => <option key={d} value={String(d)}>{d}日</option>)}
+      </select>
+    </div>
+  )
 }
 
 function MedForm({
@@ -113,10 +175,9 @@ function PatientForm({
         </div>
         <div className="form-field">
           <label>生年月日 / Birth Date</label>
-          <input
-            type="date"
+          <BirthDatePicker
             value={patient.birthDate}
-            onChange={e => onChange({ ...patient, birthDate: e.target.value })}
+            onChange={v => onChange({ ...patient, birthDate: v })}
           />
         </div>
         <div className="form-field-row">
@@ -197,7 +258,7 @@ export function PatientEditor({ patients, onChange, onClose }: Props) {
 
   const mutate = (newList: Patient[]) => {
     setList(newList)
-    onChange(newList)  // auto-save on every change
+    onChange(newList)
   }
 
   const updatePatient = (updated: Patient) => {
@@ -223,6 +284,12 @@ export function PatientEditor({ patients, onChange, onClose }: Props) {
   const deletePatient = (id: string) => {
     mutate(list.filter(p => p.id !== id))
     setEditingId(null)
+  }
+
+  const handleResetAll = () => {
+    if (window.confirm('すべての家族データを削除しますか？この操作は元に戻せません。\n\nDelete ALL family member data? This cannot be undone.')) {
+      mutate([])
+    }
   }
 
   const editing = editingId ? (list.find(p => p.id === editingId) ?? null) : null
@@ -277,11 +344,25 @@ export function PatientEditor({ patients, onChange, onClose }: Props) {
         </button>
       </div>
 
-      <div style={{ padding: '0 20px 20px' }}>
+      <div style={{ padding: '0 20px 12px' }}>
         <button className="btn-secondary" onClick={onClose} style={{ width: '100%' }}>
           ← 閉じる / Close
         </button>
       </div>
+
+      {list.length > 0 && (
+        <div style={{ padding: '0 20px 32px', textAlign: 'center' }}>
+          <button
+            onClick={handleResetAll}
+            style={{
+              background: 'none', border: 'none', color: 'var(--gray-400)',
+              fontSize: 12, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit',
+            }}
+          >
+            すべての家族データを削除する
+          </button>
+        </div>
+      )}
     </>
   )
 }

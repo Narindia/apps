@@ -769,6 +769,16 @@ html, body {
   border-bottom-color: var(--navy);
 }
 
+/* Setup banner (shown when no family members registered) */
+.setup-banner {
+  background: linear-gradient(135deg, var(--orange) 0%, #c45f20 100%);
+  color: white;
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
 /* Auto-save banner */
 .autosave-banner {
   background: var(--green-light);
