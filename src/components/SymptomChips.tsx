@@ -1,27 +1,31 @@
-import { SYMPTOM_CHIPS, CATEGORY_LABELS } from '../data/symptoms'
+import { useState } from 'react'
+import { SYMPTOM_CHIPS, CATEGORY_LABELS, CATEGORY_ORDER } from '../data/symptoms'
 import type { SelectedSymptom } from '../types'
 
 interface Props {
   selected: SelectedSymptom[]
   temperature: string
   temperatureUnknown: boolean
+  otherSymptom: string
   onToggle: (key: string) => void
   onTemperatureChange: (val: string) => void
   onTemperatureUnknown: (val: boolean) => void
+  onOtherSymptom: (val: string) => void
 }
 
 export function SymptomChips({
   selected,
   temperature,
   temperatureUnknown,
+  otherSymptom,
   onToggle,
   onTemperatureChange,
   onTemperatureUnknown,
+  onOtherSymptom,
 }: Props) {
+  const [showOther, setShowOther] = useState(!!otherSymptom)
   const selectedKeys = new Set(selected.map(s => s.key))
   const isFeverSelected = selectedKeys.has('fever')
-
-  const categories = ['general', 'respiratory', 'digestive', 'pain', 'skin', 'neuro'] as const
 
   return (
     <div className="section">
@@ -31,7 +35,7 @@ export function SymptomChips({
       </div>
       <p className="hint">複数選択可。タップで ON/OFF します。</p>
 
-      {categories.map(cat => {
+      {CATEGORY_ORDER.map(cat => {
         const chips = SYMPTOM_CHIPS.filter(c => c.category === cat)
         if (chips.length === 0) return null
         const label = CATEGORY_LABELS[cat]
@@ -60,6 +64,40 @@ export function SymptomChips({
           </div>
         )
       })}
+
+      <div className="symptom-category">
+        <div className="symptom-category-label">その他 / Other</div>
+        <div className="chip-grid">
+          <div
+            className={`symptom-chip ${showOther || otherSymptom ? 'selected' : ''}`}
+            onClick={() => {
+              const next = !showOther
+              setShowOther(next)
+              if (!next) onOtherSymptom('')
+            }}
+          >
+            <span className="chip-icon">✏️</span>
+            <div className="chip-labels">
+              <span className="chip-en">Other Symptom</span>
+              <span className="chip-ja">その他の症状</span>
+            </div>
+          </div>
+        </div>
+        {(showOther || otherSymptom) && (
+          <textarea
+            placeholder="その他の症状を日本語または英語で入力..."
+            value={otherSymptom}
+            onChange={e => onOtherSymptom(e.target.value)}
+            style={{
+              width: '100%', marginTop: 8, padding: '8px 10px',
+              border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-sm)',
+              fontSize: 13, resize: 'vertical', minHeight: 52,
+              fontFamily: 'inherit', color: 'var(--gray-700)',
+            }}
+            autoFocus
+          />
+        )}
+      </div>
 
       {isFeverSelected && (
         <div className="temp-input-row">

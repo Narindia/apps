@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import type { Patient, SymptomEntry, AppView } from './types'
-import { loadPatients, loadEntries, saveEntry } from './utils/storage'
+import { loadPatients, loadEntries, saveEntry, savePatients } from './utils/storage'
 import { HomeView } from './components/HomeView'
 import { FormView } from './components/FormView'
 import { SymptomCard } from './components/SymptomCard'
+import { PatientEditor } from './components/PatientEditor'
 
 export default function App() {
   const [view, setView] = useState<AppView>('home')
-  const [patients] = useState<Patient[]>(loadPatients)
+  const [patients, setPatients] = useState<Patient[]>(loadPatients)
   const [history, setHistory] = useState<SymptomEntry[]>(loadEntries)
   const [editingEntry, setEditingEntry] = useState<Partial<SymptomEntry> | undefined>()
   const [completedEntry, setCompletedEntry] = useState<SymptomEntry | null>(null)
@@ -48,15 +49,23 @@ export default function App() {
     setCompletedEntry(null)
   }
 
+  const handleProfilesSave = (updated: Patient[]) => {
+    savePatients(updated)
+    setPatients(updated)
+    setView('home')
+  }
+
   const patient = completedEntry
     ? patients.find(p => p.id === completedEntry.patientId)
     : undefined
 
-  const headerTitle = {
+  const headerTitles: Record<AppView, { ja: string; en: string }> = {
     home: { ja: '症状カード', en: 'Symptom Card App' },
     form: { ja: '症状を入力', en: 'Enter Symptoms' },
     card: { ja: '症状カード', en: 'Medical Card' },
-  }[view]
+    profiles: { ja: '家族メンバー', en: 'Family Members' },
+  }
+  const headerTitle = headerTitles[view]
 
   return (
     <div className="app-shell">
@@ -66,6 +75,11 @@ export default function App() {
           {headerTitle.ja}
           <small>{headerTitle.en}</small>
         </h1>
+        {view === 'home' && (
+          <button className="header-gear" onClick={() => setView('profiles')} title="家族メンバー管理">
+            ⚙
+          </button>
+        )}
         {view !== 'home' && (
           <button className="header-back" onClick={handleBack}>
             ← ホーム
@@ -98,6 +112,13 @@ export default function App() {
             patient={patient}
             onBack={handleEditFromCard}
             onNew={handleNewFromCard}
+          />
+        )}
+
+        {view === 'profiles' && (
+          <PatientEditor
+            patients={patients}
+            onSave={handleProfilesSave}
           />
         )}
       </div>

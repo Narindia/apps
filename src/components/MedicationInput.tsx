@@ -5,11 +5,14 @@ import { nowISOLocal } from '../utils/dateHelpers'
 
 interface Props {
   medications: MedicationTaken[]
+  noMedicationTaken: boolean
   onChange: (meds: MedicationTaken[]) => void
+  onNoMedicationChange: (v: boolean) => void
 }
 
-export function MedicationInput({ medications, onChange }: Props) {
+export function MedicationInput({ medications, noMedicationTaken, onChange, onNoMedicationChange }: Props) {
   const add = (prefill?: Partial<MedicationTaken>) => {
+    if (noMedicationTaken) onNoMedicationChange(false)
     onChange([
       ...medications,
       {
@@ -41,68 +44,82 @@ export function MedicationInput({ medications, onChange }: Props) {
       </div>
       <p className="hint">病院に来る前に飲んだ薬を記録してください。</p>
 
-      <div className="otc-quick">
-        {COMMON_OTCS.map(otc => (
-          <button
-            key={otc.nameEn}
-            className="otc-quick-btn"
-            onClick={() =>
-              add({
-                nameEn: otc.nameEn,
-                nameJa: otc.nameJa,
-                dose: otc.dose,
-              })
-            }
-          >
-            ＋ {otc.nameJa}
-          </button>
-        ))}
-      </div>
-
-      {medications.map((med, idx) => (
-        <div key={med.id} className="med-entry">
-          <div className="med-entry-header">
-            <span>薬 {idx + 1}</span>
-            <button className="btn-remove" onClick={() => remove(med.id)}>✕</button>
-          </div>
-          <div className="med-entry-row">
-            <input
-              placeholder="薬品名（英語）/ Drug name (EN)"
-              value={med.nameEn}
-              onChange={e => update(med.id, 'nameEn', e.target.value)}
-            />
-            <input
-              placeholder="薬品名（日本語）/ Drug name (JA)"
-              value={med.nameJa}
-              onChange={e => update(med.id, 'nameJa', e.target.value)}
-            />
-          </div>
-          <div className="med-entry-row">
-            <input
-              placeholder="用量 / Dose (e.g. 500mg)"
-              value={med.dose}
-              onChange={e => update(med.id, 'dose', e.target.value)}
-            />
-            <input
-              placeholder="回数 / Times taken (e.g. 2回)"
-              value={med.timesTaken}
-              onChange={e => update(med.id, 'timesTaken', e.target.value)}
-            />
-          </div>
-          <div className="med-full-row">
-            <input
-              type="datetime-local"
-              value={med.lastTakenAt}
-              onChange={e => update(med.id, 'lastTakenAt', e.target.value)}
-              style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-sm)', fontSize: 13, fontFamily: 'inherit' }}
-            />
-          </div>
-        </div>
-      ))}
-
-      <button className="btn-add" onClick={() => add()}>
-        ＋ 薬を追加 / Add Medication
+      <button
+        className={`no-med-toggle ${noMedicationTaken ? 'active' : ''}`}
+        onClick={() => {
+          onNoMedicationChange(!noMedicationTaken)
+          if (!noMedicationTaken) onChange([])
+        }}
+      >
+        {noMedicationTaken ? '✓' : '○'} 服用していない / No medications taken
       </button>
+
+      {!noMedicationTaken && (
+        <>
+          <div className="otc-quick">
+            {COMMON_OTCS.map(otc => (
+              <button
+                key={otc.nameEn}
+                className="otc-quick-btn"
+                onClick={() =>
+                  add({
+                    nameEn: otc.nameEn,
+                    nameJa: otc.nameJa,
+                    dose: otc.dose,
+                  })
+                }
+              >
+                ＋ {otc.nameJa}
+              </button>
+            ))}
+          </div>
+
+          {medications.map((med, idx) => (
+            <div key={med.id} className="med-entry">
+              <div className="med-entry-header">
+                <span>薬 {idx + 1}</span>
+                <button className="btn-remove" onClick={() => remove(med.id)}>✕</button>
+              </div>
+              <div className="med-entry-row">
+                <input
+                  placeholder="薬品名（英語）/ Drug name (EN)"
+                  value={med.nameEn}
+                  onChange={e => update(med.id, 'nameEn', e.target.value)}
+                />
+                <input
+                  placeholder="薬品名（日本語）/ Drug name (JA)"
+                  value={med.nameJa}
+                  onChange={e => update(med.id, 'nameJa', e.target.value)}
+                />
+              </div>
+              <div className="med-entry-row">
+                <input
+                  placeholder="用量 / Dose (e.g. 500mg)"
+                  value={med.dose}
+                  onChange={e => update(med.id, 'dose', e.target.value)}
+                />
+                <input
+                  placeholder="回数 / Times taken (e.g. 2回)"
+                  value={med.timesTaken}
+                  onChange={e => update(med.id, 'timesTaken', e.target.value)}
+                />
+              </div>
+              <div className="med-full-row">
+                <input
+                  type="datetime-local"
+                  value={med.lastTakenAt}
+                  onChange={e => update(med.id, 'lastTakenAt', e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--gray-300)', borderRadius: 'var(--radius-sm)', fontSize: 13, fontFamily: 'inherit' }}
+                />
+              </div>
+            </div>
+          ))}
+
+          <button className="btn-add" onClick={() => add()}>
+            ＋ 薬を追加 / Add Medication
+          </button>
+        </>
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import type { SymptomEntry, Patient } from '../types'
 import { SYMPTOM_CHIPS } from '../data/symptoms'
 import { calcAge, formatDatetime, formatDate } from '../utils/dateHelpers'
+import html2canvas from 'html2canvas'
 
 interface Props {
   entry: SymptomEntry
@@ -10,33 +11,9 @@ interface Props {
   onNew: () => void
 }
 
-function translateEventToEn(ja: string): string {
-  const map: [RegExp, string][] = [
-    [/発熱|熱が出/i, 'Fever started'],
-    [/嘔吐|吐い/i, 'Vomiting occurred'],
-    [/下痢/i, 'Diarrhea started'],
-    [/頭痛/i, 'Headache started'],
-    [/腹痛/i, 'Abdominal pain started'],
-    [/咳/i, 'Cough started'],
-    [/鼻水/i, 'Runny nose started'],
-    [/喉/i, 'Sore throat started'],
-    [/発疹/i, 'Rash appeared'],
-    [/けいれん/i, 'Convulsion occurred'],
-    [/食欲/i, 'Loss of appetite noted'],
-    [/倦怠感/i, 'Fatigue noted'],
-    [/解熱|熱が下/i, 'Fever subsided'],
-    [/救急/i, 'Emergency evaluation'],
-    [/受診/i, 'Medical consultation'],
-  ]
-  for (const [re, en] of map) {
-    if (re.test(ja)) return en
-  }
-  return ja
-}
-
 function calcSeverity(entry: SymptomEntry): { level: string; label: string } {
-  const alertSymptoms = ['convulsion', 'consciousness', 'difficulty_breathing']
-  const warnSymptoms = ['fever', 'vomiting', 'diarrhea', 'abdominal_pain', 'swollen_tonsils', 'rash']
+  const alertSymptoms = ['convulsion', 'consciousness', 'difficulty_breathing', 'chest_pain', 'cyanosis', 'blood_urine', 'blood_stool', 'jaundice']
+  const warnSymptoms = ['fever', 'vomiting', 'diarrhea', 'abdominal_pain', 'swollen_tonsils', 'rash', 'shortness_of_breath', 'dehydration', 'numbness', 'painful_urination']
   const keys = entry.symptoms.map(s => s.key)
 
   if (keys.some(k => alertSymptoms.includes(k))) return { level: 'urgent', label: 'URGENT' }
@@ -70,6 +47,26 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
     window.print()
   }
 
+  const handleSaveImage = async () => {
+    if (!cardRef.current) return
+    const actionBar = cardRef.current.querySelector('.card-actions') as HTMLElement | null
+    if (actionBar) actionBar.style.display = 'none'
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f0f4f8',
+      })
+      const url = canvas.toDataURL('image/png')
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `symptom-card-${patient.nameEn.replace(/\s+/g, '-')}-${entry.date.slice(0, 10)}.png`
+      a.click()
+    } finally {
+      if (actionBar) actionBar.style.display = ''
+    }
+  }
+
   const temp = entry.vitals.temperature
   const tempUnknown = entry.vitals.temperatureUnknown
   const hasTempReading = entry.symptoms.some(s => s.key === 'fever') && (temp || tempUnknown)
@@ -79,7 +76,6 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
 
   return (
     <div className="card-view" ref={cardRef}>
-      {/* Header */}
       <div className="card-header">
         <div className="card-cross">✚</div>
         <div className="card-title-block">
@@ -96,7 +92,7 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
             <span className={`severity-badge ${severity.level}`}>
               ⚠ {severity.label} severity
             </span>
-            {patient.allergies && patient.allergies !== 'None known' && (
+            {patient.allergies && patient.allergies !== 'None known' && patient.allergies !== '' && (
               <span style={{ marginLeft: 8, fontSize: 12, color: '#fc8181', fontWeight: 700 }}>
                 ⚠ Allergy: {patient.allergies}
               </span>
@@ -105,7 +101,6 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
         </div>
       </div>
 
-      {/* Self assessment */}
       {entry.selfAssessment && (
         <div className="self-assess-block">
           <div className="self-assess-label">Patient / Caregiver Assessment</div>
@@ -113,21 +108,15 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
         </div>
       )}
 
-      {/* Vitals */}
       {hasTempReading && (
         <div className="card-block">
           <div className="card-block-header">🌡️ Vital Signs / バイタル</div>
           <div className="card-block-body">
             <div className="vitals-row">
               {tempUnknown ? (
-                <>
-                  <div>
-                    <div className="vital-label-en">Temperature</div>
-                    <div className="vital-label-ja" style={{ fontSize: 13, color: 'var(--gray-600)' }}>
-                      Not measured / 未測定
-                    </div>
-                  </div>
-                </>
+                <div>
+                  <div className="vital-label-en">Temperature: Not measured / 未測定</div>
+                </div>
               ) : (
                 <>
                   <div className="vital-value">{temp}</div>
@@ -143,8 +132,7 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
         </div>
       )}
 
-      {/* Symptoms */}
-      {entry.symptoms.length > 0 && (
+      {(entry.symptoms.length > 0 || entry.otherSymptom) && (
         <div className="card-block">
           <div className="card-block-header">🤒 Current Symptoms / 現在の症状</div>
           <div className="card-block-body">
@@ -163,72 +151,81 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
                   </div>
                 )
               })}
+              {entry.otherSymptom && (
+                <div className="card-chip">
+                  <span className="card-chip-icon">✏️</span>
+                  <div>
+                    <div className="card-chip-en">Other / その他</div>
+                    <div className="card-chip-ja" style={{ fontSize: 11 }}>{entry.otherSymptom}</div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Timeline */}
       {entry.timeline.length > 0 && (
         <div className="card-block">
           <div className="card-block-header">📋 Symptom Timeline / 発症経過</div>
           <div className="card-block-body">
-            {entry.timeline.map(t => {
-              const enText = t.eventEn || translateEventToEn(t.eventJa)
-              return (
-                <div key={t.id} className="card-timeline-item">
-                  <div className="card-timeline-time">{formatDatetime(t.datetime)}</div>
-                  <div>
-                    <div className="card-timeline-en">{enText}</div>
-                    {t.eventJa && (
-                      <div className="card-timeline-ja">{t.eventJa}</div>
-                    )}
-                  </div>
+            {entry.timeline.map(t => (
+              <div key={t.id} className="card-timeline-item">
+                <div className="card-timeline-time">{formatDatetime(t.datetime)}</div>
+                <div>
+                  <div className="card-timeline-en">{t.eventEn || t.eventJa}</div>
+                  {t.eventJa && t.eventEn !== t.eventJa && (
+                    <div className="card-timeline-ja">{t.eventJa}</div>
+                  )}
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Medications taken */}
-      {takenMeds.length > 0 && (
+      {(takenMeds.length > 0 || entry.noMedicationTaken) && (
         <div className="card-block">
           <div className="card-block-header">💊 Medications Already Taken / 服用済みの薬</div>
-          <div className="card-block-body" style={{ padding: 0 }}>
-            <table className="card-med-table">
-              <thead>
-                <tr>
-                  <th>Drug / 薬品名</th>
-                  <th>Dose / 用量</th>
-                  <th>When / いつ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {takenMeds.map(m => (
-                  <tr key={m.id}>
-                    <td>
-                      <div className="med-name-en">{m.nameEn || m.nameJa}</div>
-                      {m.nameJa && m.nameEn && (
-                        <div className="med-name-ja">{m.nameJa}</div>
-                      )}
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{m.dose}</div>
-                      <div style={{ fontSize: 11, color: 'var(--gray-500)' }}>{m.timesTaken}</div>
-                    </td>
-                    <td style={{ fontSize: 12, color: 'var(--gray-600)' }}>
-                      {m.lastTakenAt ? formatDatetime(m.lastTakenAt) : '—'}
-                    </td>
+          <div className="card-block-body" style={entry.noMedicationTaken ? {} : { padding: 0 }}>
+            {entry.noMedicationTaken ? (
+              <div style={{ fontWeight: 600, color: 'var(--green)', fontSize: 14 }}>
+                ✓ No medications taken before this visit / 受診前に薬は服用していません
+              </div>
+            ) : (
+              <table className="card-med-table">
+                <thead>
+                  <tr>
+                    <th>Drug / 薬品名</th>
+                    <th>Dose / 用量</th>
+                    <th>When / いつ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {takenMeds.map(m => (
+                    <tr key={m.id}>
+                      <td>
+                        <div className="med-name-en">{m.nameEn || m.nameJa}</div>
+                        {m.nameJa && m.nameEn && (
+                          <div className="med-name-ja">{m.nameJa}</div>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{m.dose}</div>
+                        <div style={{ fontSize: 11, color: 'var(--gray-500)' }}>{m.timesTaken}</div>
+                      </td>
+                      <td style={{ fontSize: 12, color: 'var(--gray-600)' }}>
+                        {m.lastTakenAt ? formatDatetime(m.lastTakenAt) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}
 
-      {/* Regular medications */}
       {regularMeds.length > 0 && (
         <div className="reg-med-block">
           <div className="reg-med-header">
@@ -263,7 +260,6 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
         </div>
       )}
 
-      {/* Footer */}
       <div className="card-footer">
         <strong>⚠ Please check for drug interactions before prescribing.</strong>
         処方前に薬の相互作用をご確認ください。
@@ -273,10 +269,12 @@ export function SymptomCard({ entry, patient, onBack, onNew }: Props) {
 
       <div style={{ height: 90 }} />
 
-      {/* Action bar */}
       <div className="card-actions">
         <button className="btn-secondary" onClick={onBack}>
           ✏️ 編集
+        </button>
+        <button className="btn-secondary" onClick={handleSaveImage} title="画像として保存">
+          🖼 保存
         </button>
         <button className="btn-secondary" onClick={handlePrint}>
           🖨️ 印刷

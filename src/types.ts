@@ -21,7 +21,7 @@ export interface SymptomChip {
   labelEn: string
   labelJa: string
   icon: string
-  category: 'general' | 'respiratory' | 'digestive' | 'skin' | 'pain' | 'neuro'
+  category: 'general' | 'respiratory' | 'digestive' | 'skin' | 'pain' | 'neuro' | 'urinary' | 'eye'
   warnLevel?: 'normal' | 'warn' | 'alert'
   hasSubInput?: 'temperature' | 'severity'
 }
@@ -34,6 +34,8 @@ export interface SelectedSymptom {
 export interface TimelineEntry {
   id: string
   datetime: string
+  selectedSymptomKeys: string[]
+  eventType: string
   eventJa: string
   eventEn: string
   preset?: string
@@ -62,16 +64,11 @@ export interface SymptomEntry {
   date: string
   selfAssessment: string
   symptoms: SelectedSymptom[]
+  otherSymptom: string
   timeline: TimelineEntry[]
   medicationsTaken: MedicationTaken[]
+  noMedicationTaken: boolean
   vitals: Vitals
 }
 
-export type AppView = 'home' | 'form' | 'card'
-
-export interface AppState {
-  view: AppView
-  selectedPatientId: string | null
-  currentEntry: Partial<SymptomEntry>
-  formStep: number
-}
+export type AppView = 'home' | 'form' | 'card' | 'profiles'

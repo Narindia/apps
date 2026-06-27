@@ -21,10 +21,12 @@ interface Props {
 export function FormView({ patients, initialEntry, onComplete }: Props) {
   const [patientId, setPatientId] = useState<string>(initialEntry?.patientId ?? '')
   const [symptoms, setSymptoms] = useState<SelectedSymptom[]>(initialEntry?.symptoms ?? [])
+  const [otherSymptom, setOtherSymptom] = useState(initialEntry?.otherSymptom ?? '')
   const [temperature, setTemperature] = useState(initialEntry?.vitals?.temperature ?? '')
   const [temperatureUnknown, setTemperatureUnknown] = useState(initialEntry?.vitals?.temperatureUnknown ?? false)
   const [timeline, setTimeline] = useState<TimelineEntry[]>(initialEntry?.timeline ?? [])
   const [medications, setMedications] = useState<MedicationTaken[]>(initialEntry?.medicationsTaken ?? [])
+  const [noMedicationTaken, setNoMedicationTaken] = useState(initialEntry?.noMedicationTaken ?? false)
   const [selfAssessment, setSelfAssessment] = useState(initialEntry?.selfAssessment ?? '')
 
   const patient = patients.find(p => p.id === patientId)
@@ -38,15 +40,17 @@ export function FormView({ patients, initialEntry, onComplete }: Props) {
   }
 
   const handleGenerate = () => {
-    if (!patientId || symptoms.length === 0) return
+    if (!patientId || (symptoms.length === 0 && !otherSymptom.trim())) return
     const entry: SymptomEntry = {
       id: initialEntry?.id ?? generateId(),
       patientId,
       date: new Date().toISOString(),
       selfAssessment,
       symptoms,
+      otherSymptom,
       timeline,
       medicationsTaken: medications,
+      noMedicationTaken,
       vitals: {
         temperature,
         temperatureUnknown,
@@ -55,7 +59,7 @@ export function FormView({ patients, initialEntry, onComplete }: Props) {
     onComplete(entry)
   }
 
-  const canGenerate = patientId && symptoms.length > 0
+  const canGenerate = patientId && (symptoms.length > 0 || otherSymptom.trim().length > 0)
 
   return (
     <>
@@ -77,7 +81,7 @@ export function FormView({ patients, initialEntry, onComplete }: Props) {
               </div>
               <div className="patient-info-sub">
                 {patient.birthDate && `${calcAge(patient.birthDate)} / ${calcAgeJa(patient.birthDate)}`}
-                {patient.allergies && patient.allergies !== 'None known' && (
+                {patient.allergies && patient.allergies !== 'None known' && patient.allergies !== '' && (
                   <span style={{ color: 'var(--red)', marginLeft: 10, fontWeight: 600 }}>
                     ⚠ アレルギー: {patient.allergies}
                   </span>
@@ -96,14 +100,25 @@ export function FormView({ patients, initialEntry, onComplete }: Props) {
           selected={symptoms}
           temperature={temperature}
           temperatureUnknown={temperatureUnknown}
+          otherSymptom={otherSymptom}
           onToggle={toggleSymptom}
           onTemperatureChange={setTemperature}
           onTemperatureUnknown={setTemperatureUnknown}
+          onOtherSymptom={setOtherSymptom}
         />
 
-        <TimelineInput entries={timeline} onChange={setTimeline} />
+        <TimelineInput
+          entries={timeline}
+          selectedSymptomKeys={symptoms.map(s => s.key)}
+          onChange={setTimeline}
+        />
 
-        <MedicationInput medications={medications} onChange={setMedications} />
+        <MedicationInput
+          medications={medications}
+          noMedicationTaken={noMedicationTaken}
+          onChange={setMedications}
+          onNoMedicationChange={setNoMedicationTaken}
+        />
 
         <SelfAssessment value={selfAssessment} onChange={setSelfAssessment} />
 

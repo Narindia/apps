@@ -1,10 +1,11 @@
 import type { TimelineEntry } from '../types'
-import { TIME_PRESETS } from '../data/symptoms'
+import { TIME_PRESETS, EVENT_TYPES, SYMPTOM_CHIPS, generateTimelineEnglish } from '../data/symptoms'
 import { nowISOLocal } from '../utils/dateHelpers'
 import { generateId } from '../utils/storage'
 
 interface Props {
   entries: TimelineEntry[]
+  selectedSymptomKeys: string[]
   onChange: (entries: TimelineEntry[]) => void
 }
 
@@ -36,13 +37,25 @@ function presetToDatetime(preset: string): string {
   return new Date(d.getTime() - offset).toISOString().slice(0, 16)
 }
 
-export function TimelineInput({ entries, onChange }: Props) {
+function buildJa(symptomKeys: string[], eventType: string, freeText: string): string {
+  if (eventType === 'took_med') return '薬を飲んだ'
+  if (eventType === 'visited') return '受診した'
+  if (eventType === 'other') return freeText
+  const jaLabel = EVENT_TYPES.find(e => e.key === eventType)?.labelJa ?? ''
+  if (symptomKeys.length === 0) return jaLabel
+  const names = symptomKeys.map(k => SYMPTOM_CHIPS.find(c => c.key === k)?.labelJa ?? k)
+  return `${names.join('・')}が${jaLabel}`
+}
+
+export function TimelineInput({ entries, selectedSymptomKeys, onChange }: Props) {
   const add = () => {
     onChange([
       ...entries,
       {
         id: generateId(),
         datetime: nowISOLocal(),
+        selectedSymptomKeys: [],
+        eventType: '',
         eventJa: '',
         eventEn: '',
         preset: '',
@@ -54,16 +67,40 @@ export function TimelineInput({ entries, onChange }: Props) {
     onChange(entries.filter(e => e.id !== id))
   }
 
-  const update = (id: string, field: keyof TimelineEntry, value: string) => {
-    onChange(
-      entries.map(e => {
-        if (e.id !== id) return e
-        if (field === 'preset' && value) {
-          return { ...e, preset: value, datetime: presetToDatetime(value) }
-        }
-        return { ...e, [field]: value }
-      })
-    )
+  const patch = (id: string, updates: Partial<TimelineEntry>) => {
+    onChange(entries.map(e => e.id === id ? { ...e, ...updates } : e))
+  }
+
+  const updatePreset = (id: string, preset: string) => {
+    const dt = preset && preset !== '__custom' ? presetToDatetime(preset) : undefined
+    patch(id, dt ? { preset, datetime: dt } : { preset })
+  }
+
+  const toggleSymptom = (id: string, key: string) => {
+    const entry = entries.find(e => e.id === id)
+    if (!entry) return
+    const newKeys = entry.selectedSymptomKeys.includes(key)
+      ? entry.selectedSymptomKeys.filter(k => k !== key)
+      : [...entry.selectedSymptomKeys, key]
+    const en = generateTimelineEnglish(newKeys, entry.eventType, entry.eventJa)
+    const ja = buildJa(newKeys, entry.eventType, entry.eventJa)
+    patch(id, { selectedSymptomKeys: newKeys, eventEn: en, eventJa: ja })
+  }
+
+  const updateEventType = (id: string, eventType: string) => {
+    const entry = entries.find(e => e.id === id)
+    if (!entry) return
+    const freeText = entry.eventType === 'other' ? entry.eventJa : ''
+    const en = generateTimelineEnglish(entry.selectedSymptomKeys, eventType, freeText)
+    const ja = buildJa(entry.selectedSymptomKeys, eventType, freeText)
+    patch(id, { eventType, eventEn: en, eventJa: ja })
+  }
+
+  const updateFreeText = (id: string, text: string) => {
+    const entry = entries.find(e => e.id === id)
+    if (!entry) return
+    const en = generateTimelineEnglish(entry.selectedSymptomKeys, entry.eventType, text)
+    patch(id, { eventJa: text, eventEn: en })
   }
 
   return (
@@ -72,18 +109,18 @@ export function TimelineInput({ entries, onChange }: Props) {
         <span className="step-badge">3</span>
         発症の経過 / Timeline of Symptoms
       </div>
-      <p className="hint">いつ何が起きたかを記録してください。「いつから？」という医師の質問に答えられます。</p>
+      <p className="hint">いつ何が起きたかを記録。「いつから？」という医師の質問に答えられます。</p>
 
-      {entries.map((entry, idx) => (
+      {entries.map(entry => (
         <div key={entry.id} className="timeline-entry">
           <div className="timeline-dot" />
           <div className="timeline-fields">
             <div className="timeline-time-row">
               <select
                 value={entry.preset || ''}
-                onChange={e => update(entry.id, 'preset', e.target.value)}
+                onChange={e => updatePreset(entry.id, e.target.value)}
               >
-                <option value="">📅 日時を選択...</option>
+                <option value="">📅 いつ？（時間を選択）</option>
                 {TIME_PRESETS.map(p => (
                   <option key={p.value} value={p.value}>
                     {p.labelJa} ({p.labelEn})
@@ -96,14 +133,60 @@ export function TimelineInput({ entries, onChange }: Props) {
               <input
                 type="datetime-local"
                 value={entry.datetime}
-                onChange={e => update(entry.id, 'datetime', e.target.value)}
+                onChange={e => patch(entry.id, { datetime: e.target.value })}
               />
             )}
-            <textarea
-              placeholder={`出来事を日本語で入力... (例：熱が39度になった、嘔吐した)\nEntry ${idx + 1}: What happened?`}
-              value={entry.eventJa}
-              onChange={e => update(entry.id, 'eventJa', e.target.value)}
-            />
+
+            {selectedSymptomKeys.length > 0 && (
+              <div>
+                <div className="timeline-sublabel">症状（タップで選択）:</div>
+                <div className="event-chips">
+                  {selectedSymptomKeys.map(key => {
+                    const chip = SYMPTOM_CHIPS.find(c => c.key === key)
+                    if (!chip) return null
+                    const isActive = entry.selectedSymptomKeys.includes(key)
+                    return (
+                      <button
+                        key={key}
+                        className={`event-chip ${isActive ? 'active' : ''}`}
+                        onClick={() => toggleSymptom(entry.id, key)}
+                      >
+                        {chip.icon} {chip.labelJa}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <div className="timeline-sublabel">何が起きた？:</div>
+              <div className="event-type-chips">
+                {EVENT_TYPES.map(ev => (
+                  <button
+                    key={ev.key}
+                    className={`event-type-chip ${entry.eventType === ev.key ? 'active' : ''}`}
+                    onClick={() => updateEventType(entry.id, ev.key)}
+                  >
+                    {ev.labelJa}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {entry.eventType === 'other' && (
+              <textarea
+                placeholder="内容を日本語で入力してください..."
+                value={entry.eventJa}
+                onChange={e => updateFreeText(entry.id, e.target.value)}
+              />
+            )}
+
+            {entry.eventEn && (
+              <div className="timeline-preview">
+                📋 {entry.eventEn}
+              </div>
+            )}
           </div>
           <button className="btn-remove" onClick={() => remove(entry.id)}>✕</button>
         </div>
