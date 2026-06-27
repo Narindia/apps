@@ -49,10 +49,10 @@ export default function App() {
     setCompletedEntry(null)
   }
 
-  const handleProfilesSave = (updated: Patient[]) => {
+  // Auto-save: called on every mutation in PatientEditor
+  const handlePatientsChange = (updated: Patient[]) => {
     savePatients(updated)
     setPatients(updated)
-    setView('home')
   }
 
   const patient = completedEntry
@@ -118,7 +118,8 @@ export default function App() {
         {view === 'profiles' && (
           <PatientEditor
             patients={patients}
-            onSave={handleProfilesSave}
+            onChange={handlePatientsChange}
+            onClose={handleBack}
           />
         )}
       </div>

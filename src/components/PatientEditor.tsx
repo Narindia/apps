@@ -5,7 +5,8 @@ import { calcAge } from '../utils/dateHelpers'
 
 interface Props {
   patients: Patient[]
-  onSave: (patients: Patient[]) => void
+  onChange: (patients: Patient[]) => void  // called on every mutation — auto-saves
+  onClose: () => void
 }
 
 function MedForm({
@@ -90,6 +91,8 @@ function PatientForm({
 
   return (
     <>
+      <div className="autosave-banner">✓ 変更は自動保存されています</div>
+
       <div className="section">
         <div className="section-title">メンバー情報 / Member Info</div>
         <div className="form-field">
@@ -182,20 +185,23 @@ function getAvatar(p: Patient): string {
   if (p.id.startsWith('daughter')) return '👧'
   if (p.id === 'son') return '👦'
   if (p.id === 'other') return '🧑'
-  const nameEn = p.nameEn.toLowerCase()
-  if (nameEn.includes('boy') || nameEn.includes('son') || nameEn.includes('father') || nameEn.includes('husband')) return '👦'
-  if (nameEn.includes('girl') || nameEn.includes('daughter') || nameEn.includes('mother') || nameEn.includes('wife')) return '👧'
+  const name = (p.nameJa + p.nameEn).toLowerCase()
+  if (name.includes('息子') || name.includes('boy') || name.includes('son') || name.includes('father') || name.includes('夫') || name.includes('husband')) return '👦'
+  if (name.includes('娘') || name.includes('girl') || name.includes('daughter') || name.includes('mother') || name.includes('妻') || name.includes('wife')) return '👧'
   return '🧑'
 }
 
-export function PatientEditor({ patients, onSave }: Props) {
+export function PatientEditor({ patients, onChange, onClose }: Props) {
   const [list, setList] = useState<Patient[]>(patients)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  const editing = editingId ? (list.find(p => p.id === editingId) ?? null) : null
+  const mutate = (newList: Patient[]) => {
+    setList(newList)
+    onChange(newList)  // auto-save on every change
+  }
 
   const updatePatient = (updated: Patient) => {
-    setList(prev => prev.map(p => p.id === updated.id ? updated : p))
+    mutate(list.map(p => p.id === updated.id ? updated : p))
   }
 
   const addPatient = () => {
@@ -208,14 +214,18 @@ export function PatientEditor({ patients, onSave }: Props) {
       allergies: '',
       regularMedications: [],
     }
-    setList(prev => [...prev, newP])
+    const newList = [...list, newP]
+    setList(newList)
+    onChange(newList)
     setEditingId(newP.id)
   }
 
   const deletePatient = (id: string) => {
-    setList(prev => prev.filter(p => p.id !== id))
+    mutate(list.filter(p => p.id !== id))
     setEditingId(null)
   }
+
+  const editing = editingId ? (list.find(p => p.id === editingId) ?? null) : null
 
   if (editing) {
     return (
@@ -230,9 +240,20 @@ export function PatientEditor({ patients, onSave }: Props) {
 
   return (
     <>
+      <div className="autosave-banner">✓ 変更は自動保存されています</div>
+
       <div className="section">
         <div className="section-title">家族メンバー管理 / Manage Family Members</div>
-        <p className="hint">タップして情報・常備薬を編集できます。</p>
+        <p className="hint">タップして情報・常備薬を編集できます。変更は即座に保存されます。</p>
+
+        {list.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--gray-500)' }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>👥</div>
+            <div style={{ fontWeight: 600 }}>まだメンバーがいません</div>
+            <div style={{ fontSize: 12, marginTop: 4 }}>下の「メンバーを追加」からご家族を登録してください</div>
+          </div>
+        )}
+
         {list.map(p => (
           <div key={p.id} className="profile-row" onClick={() => setEditingId(p.id)}>
             <div className="profile-avatar">{getAvatar(p)}</div>
@@ -250,13 +271,15 @@ export function PatientEditor({ patients, onSave }: Props) {
             <div className="profile-arrow">›</div>
           </div>
         ))}
+
         <button className="btn-add" style={{ marginTop: 12 }} onClick={addPatient}>
           ＋ メンバーを追加 / Add Member
         </button>
       </div>
+
       <div style={{ padding: '0 20px 20px' }}>
-        <button className="btn-primary" onClick={() => onSave(list)}>
-          保存して戻る / Save & Return
+        <button className="btn-secondary" onClick={onClose} style={{ width: '100%' }}>
+          ← 閉じる / Close
         </button>
       </div>
     </>

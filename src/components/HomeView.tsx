@@ -81,41 +81,56 @@ export function HomeView({ patients, history, onNewEntry, onViewEntry, onHistory
             <div className="section-title" style={{ marginBottom: 12 }}>
               👥 家族メンバー
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {patients.filter(p => p.id !== 'other').map(p => (
-                <div
-                  key={p.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    background: 'var(--gray-50)',
-                    border: '1px solid var(--gray-200)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '12px 14px',
-                    cursor: 'pointer',
-                  }}
-                  onClick={onNewEntry}
-                >
-                  <span style={{ fontSize: 28 }}>{AVATARS[p.id] ?? '🧑'}</span>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--gray-700)' }}>
-                      {p.nameJa}
-                      <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--gray-500)', marginLeft: 8 }}>
-                        {p.nameEn}
-                      </span>
-                    </div>
-                    {p.birthDate && (
-                      <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 2 }}>
-                        {calcAgeJa(p.birthDate)}
-                        {p.regularMedications.length > 0 && ` · 常備薬 ${p.regularMedications.length}件`}
+            {patients.length === 0 ? (
+              <div style={{
+                background: 'var(--gray-50)',
+                border: '2px dashed var(--gray-300)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '20px',
+                textAlign: 'center',
+                color: 'var(--gray-500)',
+              }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>👥</div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>まだメンバーがいません</div>
+                <div style={{ fontSize: 12, marginTop: 4 }}>右上の ⚙ から家族を登録してください</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {patients.map(p => (
+                  <div
+                    key={p.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      background: 'var(--gray-50)',
+                      border: '1px solid var(--gray-200)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '12px 14px',
+                      cursor: 'pointer',
+                    }}
+                    onClick={onNewEntry}
+                  >
+                    <span style={{ fontSize: 28 }}>{AVATARS[p.id] ?? '🧑'}</span>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--gray-700)' }}>
+                        {p.nameJa}
+                        <span style={{ fontWeight: 400, fontSize: 12, color: 'var(--gray-500)', marginLeft: 8 }}>
+                          {p.nameEn}
+                        </span>
                       </div>
-                    )}
+                      {p.birthDate && (
+                        <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 2 }}>
+                          {calcAgeJa(p.birthDate)}
+                          {p.regularMedications.length > 0 && ` · 常備薬 ${p.regularMedications.length}件`}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ marginLeft: 'auto', color: 'var(--gray-400)', fontSize: 18 }}>›</span>
                   </div>
-                  <span style={{ marginLeft: 'auto', color: 'var(--gray-400)', fontSize: 18 }}>›</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
