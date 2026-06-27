@@ -1,1 +1,0 @@
-{"name":"症状カード / Symptom Card","short_name":"症状カード","description":"医師への症状説明カードを素早く作成","start_url":"/apps/","display":"standalone","background_color":"#f0f4f8","theme_color":"#1a3a5c","lang":"en","scope":"/apps/","orientation":"portrait","icons":[{"src":"/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/icon-512.png","sizes":"512x512","type":"image/png"}]}

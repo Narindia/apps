@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/apps/symptom-card/sw.js', { scope: '/apps/symptom-card/' })})}
