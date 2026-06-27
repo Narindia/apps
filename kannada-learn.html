@@ -320,7 +320,15 @@
   .dot.filled { background: var(--gold); border-color: var(--gold); }
 
   .card .ja { font-size: 1.3rem; font-weight: bold; margin-bottom: 8px; }
-  .card .tap-hint { font-size: 0.7rem; color: var(--text-dim); }
+  .card .tap-hint {
+    margin-top: 16px;
+    padding: 10px 28px;
+    background: var(--gold);
+    color: var(--maroon-dark);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+  }
   .card .kata { font-size: 1.35rem; color: var(--gold-light); font-weight: bold; margin-bottom: 4px; }
   .card .kn { font-size: 1.1rem; color: var(--text-dim); margin-bottom: 8px; }
   .card .gr-tag {
@@ -769,6 +777,7 @@ let currentIds   = null;
 let currentTitle = '';
 let currentPhrase = null;
 let revealed = false;
+let sessionQueue = []; // デイリーモード用キュー
 
 function openStudy(cat) {
   currentCat   = cat;
@@ -785,6 +794,7 @@ function openStudyByIds(ids, title) {
   currentCat   = '__daily__';
   currentIds   = ids;
   currentTitle = title;
+  sessionQueue = [...ids]; // キュー初期化
   document.getElementById('homeScreen').style.display = 'none';
   document.getElementById('studyScreen').style.display = 'block';
   document.getElementById('studyTitle').textContent = title;
@@ -899,7 +909,7 @@ function renderCard(phrase) {
         <div class="cat-badge">${phrase.cat}</div>
         ${renderScoreDots(score)}
         <div class="ja">${phrase.ja}</div>
-        <div class="tap-hint">タップして読み方を確認</div>
+        <div class="tap-hint">▼ タップして確認</div>
       </div>`;
   } else {
     const safeKn = phrase.kn.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -958,25 +968,43 @@ function nextCard() {
   if (currentCat==='動詞ಇರu活用') { renderConjugationTable(); return; }
   if (window.speechSynthesis) speechSynthesis.cancel();
   revealed=false;
-  currentPhrase=pickNextPhrase();
   document.getElementById('btnAgain').disabled=true;
   document.getElementById('btnSkip').disabled=true;
   document.getElementById('btnGot').disabled=true;
-  if (!currentPhrase) {
-    const msg = currentCat==='__daily__' ? '全フレーズ完了！ホームに戻ってください' : 'このカテゴリのフレーズはありません';
-    document.getElementById('mainArea').innerHTML=`<div class="empty-state"><div class="big">🎉</div>${msg}</div>`;
-    document.getElementById('queueInfo').textContent='';
-    return;
+
+  if (currentIds) {
+    // デイリーモード: キューから順番に取り出す
+    if (sessionQueue.length === 0) {
+      document.getElementById('mainArea').innerHTML=`<div class="empty-state"><div class="big">🎉</div>全フレーズ完了！ホームに戻ってください</div>`;
+      document.getElementById('queueInfo').textContent='';
+      return;
+    }
+    const nextId = sessionQueue.shift();
+    currentPhrase = PHRASES.find(p => p.id === nextId) || null;
+    if (!currentPhrase) { nextCard(); return; }
+    renderCard(currentPhrase);
+    const total = currentIds.length;
+    const done  = total - sessionQueue.length;
+    document.getElementById('queueInfo').textContent = done + ' / ' + total;
+  } else {
+    // カテゴリモード: 重み付きランダム
+    currentPhrase=pickNextPhrase();
+    if (!currentPhrase) {
+      document.getElementById('mainArea').innerHTML=`<div class="empty-state"><div class="big">🎉</div>このカテゴリのフレーズはありません</div>`;
+      document.getElementById('queueInfo').textContent='';
+      return;
+    }
+    renderCard(currentPhrase);
+    const remaining=filteredPhrases().filter(p=>(progress[p.id]||0)<5).length;
+    document.getElementById('queueInfo').textContent='残り未定着: '+remaining+'フレーズ';
   }
-  renderCard(currentPhrase);
-  const remaining=filteredPhrases().filter(p=>(progress[p.id]||0)<5).length;
-  document.getElementById('queueInfo').textContent='残り未定着: '+remaining+'フレーズ';
 }
 
 document.getElementById('btnAgain').onclick=function(){
   const id=currentPhrase.id;
   progress[id]=Math.max(0,(progress[id]||0)-1);
   saveProgress(); updateProgress();
+  if (currentIds) sessionQueue.push(id); // デイリーモードは末尾に再追加
   // 同じカードの表に戻る
   revealed=false;
   document.getElementById('btnAgain').disabled=true;
@@ -994,7 +1022,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260622-008';
+const APP_VERSION = '20260622-009';
 
 async function checkForUpdate() {
   try {
