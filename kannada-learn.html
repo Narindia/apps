@@ -682,7 +682,7 @@ function getDailyPlan() {
   const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
 
   // 今日の新規フレーズ（まだなければ設定値の語数で割り当て）
-  if (!daily[today]) {
+  if (!daily[today] || daily[today].length === 0) {
     const usedIds = new Set(Object.values(daily).flat());
     const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
     let picked;
@@ -1029,7 +1029,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260702-010';
+const APP_VERSION = '20260702-011';
 
 async function checkForUpdate() {
   try {
