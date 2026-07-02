@@ -685,7 +685,14 @@ function getDailyPlan() {
   if (!daily[today]) {
     const usedIds = new Set(Object.values(daily).flat());
     const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
-    const picked = shuffle(unlearned).slice(0, settings.newCount);
+    let picked;
+    if (unlearned.length >= settings.newCount) {
+      picked = shuffle(unlearned).slice(0, settings.newCount);
+    } else {
+      // 全フレーズ割り当て済み → スコアが低い順に選び直し
+      const sorted = [...PHRASES].sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
+      picked = sorted.slice(0, settings.newCount);
+    }
     daily[today] = picked.map(p => p.id);
     saveDaily();
   }
@@ -1022,7 +1029,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260622-009';
+const APP_VERSION = '20260702-010';
 
 async function checkForUpdate() {
   try {
