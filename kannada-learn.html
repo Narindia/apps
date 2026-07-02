@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カンナダ語学習</title>
+<style>
+  :root {
+    --maroon: #6B1A1A;
+    --maroon-dark: #4A1010;
+    --maroon-light: #8B2A2A;
+    --gold: #C9A84C;
+    --gold-light: #E2C97E;
+    --bg: #1A0A0A;
+    --card-bg: #2A1010;
+    --text: #F5ECD7;
+    --text-dim: #B8A898;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--maroon-dark);
+    border-bottom: 2px solid var(--gold);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 1.1rem; color: var(--gold); }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--maroon-light);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    color: var(--gold-light);
+    font-weight: bold;
+  }
+  .btn-settings {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+  }
+
+  /* ── SETTINGS MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--card-bg);
+    border-top: 2px solid var(--gold);
+    border-radius: 16px 16px 0 0;
+    padding: 20px 20px 40px;
+    width: 100%;
+  }
+  .modal-sheet h2 {
+    font-size: 0.95rem;
+    color: var(--gold);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .setting-row {
+    margin-bottom: 20px;
+  }
+  .setting-label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .count-selector {
+    display: flex;
+    gap: 8px;
+  }
+  .count-btn {
+    flex: 1;
+    padding: 10px 4px;
+    border-radius: 8px;
+    border: 1px solid var(--maroon-light);
+    background: var(--maroon-dark);
+    color: var(--text-dim);
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: center;
+  }
+  .count-btn.selected {
+    background: var(--gold);
+    color: var(--maroon-dark);
+    border-color: var(--gold);
+    font-weight: bold;
+  }
+  .btn-close-modal {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    background: var(--maroon-light);
+    color: var(--text);
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  /* ── HOME SCREEN ── */
+  #homeScreen { padding-bottom: 40px; }
+
+  .section-label {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    margin: 16px 0 8px;
+  }
+
+  .daily-block {
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .review-block {
+    background: var(--card-bg);
+    border: 1px solid var(--maroon-light);
+  }
+  .new-block {
+    background: linear-gradient(135deg, var(--maroon-light), var(--maroon-dark));
+    border: 1px solid var(--gold);
+  }
+  .daily-block-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .daily-icon { font-size: 1.4rem; line-height: 1; padding-top: 2px; }
+  .daily-title { font-size: 0.95rem; font-weight: bold; color: var(--text); margin-bottom: 4px; }
+  .daily-preview { font-size: 0.7rem; color: var(--text-dim); line-height: 1.5; }
+  .btn-daily {
+    width: 100%;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-review { background: var(--maroon-light); color: var(--text); border: 1px solid var(--gold); }
+  .btn-new    { background: var(--gold); color: var(--maroon-dark); }
+  .daily-sub  { font-size: 0.68rem; color: var(--text-dim); text-align: center; margin-bottom: 4px; }
+
+  .cat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--maroon-light);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .cat-card:active { border-color: var(--gold); }
+  .cat-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .cat-name { font-size: 0.9rem; font-weight: bold; }
+  .cat-count { font-size: 0.72rem; color: var(--text-dim); }
+  .mini-bar-bg {
+    background: var(--maroon-dark);
+    border-radius: 4px;
+    height: 5px;
+    overflow: hidden;
+  }
+  .mini-bar-fill {
+    background: var(--gold);
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s;
+  }
+  .cat-special {
+    background: var(--card-bg);
+    border: 1px solid var(--maroon-light);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+  .cat-special:active { border-color: var(--gold); }
+  .cat-special-icon { font-size: 1.4rem; }
+  .cat-special-text { font-size: 0.88rem; font-weight: bold; }
+  .cat-special-sub { font-size: 0.72rem; color: var(--text-dim); }
+
+  /* ── STUDY SCREEN ── */
+  #studyScreen { display: none; padding-bottom: 20px; }
+
+  .study-header {
+    background: var(--maroon-dark);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--maroon-light);
+  }
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px 8px 4px 0;
+  }
+  .study-title { font-size: 0.9rem; color: var(--text-dim); }
+
+  .progress-wrap { padding: 8px 16px 0; }
+  .progress-bar-bg {
+    background: var(--maroon-dark);
+    border-radius: 6px;
+    height: 6px;
+    overflow: hidden;
+    border: 1px solid var(--maroon-light);
+  }
+  .progress-bar-fill {
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+  }
+  .progress-label { font-size: 0.68rem; color: var(--text-dim); margin-top: 3px; text-align: right; }
+
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 8px 16px;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--maroon-light);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .tab.active {
+    background: var(--gold);
+    color: var(--maroon-dark);
+    border-color: var(--gold);
+    font-weight: bold;
+  }
+
+  .card-area { padding: 0 16px; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--maroon-light);
+    border-radius: 12px;
+    padding: 24px 20px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+  }
+  .card:active { border-color: var(--gold); }
+  .cat-badge {
+    position: absolute;
+    top: 10px; left: 12px;
+    font-size: 0.65rem;
+    color: var(--gold);
+    background: var(--maroon-dark);
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--gold);
+  }
+  .score-dots {
+    position: absolute;
+    top: 10px; right: 12px;
+    display: flex; gap: 3px;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    border: 1px solid var(--maroon-light);
+    background: transparent;
+  }
+  .dot.filled { background: var(--gold); border-color: var(--gold); }
+
+  .card .ja { font-size: 1.3rem; font-weight: bold; margin-bottom: 8px; }
+  .card .tap-hint {
+    margin-top: 16px;
+    padding: 10px 28px;
+    background: var(--gold);
+    color: var(--maroon-dark);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+  }
+  .card .kata { font-size: 1.35rem; color: var(--gold-light); font-weight: bold; margin-bottom: 4px; }
+  .card .kn { font-size: 1.1rem; color: var(--text-dim); margin-bottom: 8px; }
+  .card .gr-tag {
+    font-size: 0.7rem;
+    background: var(--maroon-dark);
+    color: var(--gold);
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--maroon-light);
+    margin-bottom: 10px;
+  }
+
+  .audio-btn {
+    background: var(--maroon-dark);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 12px;
+    transition: background 0.15s;
+  }
+  .audio-btn:active { background: var(--gold); color: var(--maroon-dark); }
+  .audio-btn.speaking { background: var(--gold); color: var(--maroon-dark); }
+
+  .word-breakdown {
+    width: 100%;
+    margin-top: 10px;
+    border-top: 1px solid var(--maroon-light);
+    padding-top: 10px;
+    text-align: left;
+  }
+  .word-breakdown h4 {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .word-row {
+    background: var(--maroon-dark);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+  .word-row-top {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
+  }
+  .word-row .wkata { font-size: 0.85rem; color: var(--gold-light); font-weight: bold; }
+  .word-row .wkn   { font-size: 0.72rem; color: var(--text-dim); }
+  .word-row .wpos  { font-size: 0.6rem; color: var(--gold); background: var(--maroon-light); padding: 1px 6px; border-radius: 6px; margin-left: auto; }
+  .word-row .wgloss { font-size: 0.75rem; color: var(--text); line-height: 1.5; }
+
+  .related-block {
+    width: 100%;
+    margin-top: 10px;
+    border-top: 1px solid var(--maroon-light);
+    padding-top: 10px;
+    text-align: left;
+  }
+  .related-block h4 {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  .related-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .related-chip {
+    background: var(--maroon-dark);
+    border: 1px solid var(--maroon-light);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .related-chip:active { border-color: var(--gold); color: var(--gold); }
+  .gloss-box .gloss-meaning { font-size: 0.8rem; color: var(--text); }
+
+  .buttons { display: flex; gap: 8px; padding: 10px 16px; }
+  .btn {
+    flex: 1; padding: 13px;
+    border: none; border-radius: 10px;
+    font-size: 0.85rem; font-weight: bold;
+    cursor: pointer; font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-again { background: var(--maroon-light); color: var(--text); flex: 1.1; }
+  .btn-skip  { background: var(--maroon-dark); color: var(--text-dim); border: 1px solid var(--maroon-light); flex: 0.9; }
+  .btn-got   { background: var(--gold); color: var(--maroon-dark); flex: 1.1; }
+  .btn:disabled { opacity: 0.35; cursor: default; }
+
+  .queue-info { text-align: center; font-size: 0.7rem; color: var(--text-dim); padding: 2px 16px 10px; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-dim); }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 10px; }
+
+  .conj-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 10px; }
+  .conj-table th {
+    background: var(--maroon-dark); color: var(--gold);
+    padding: 6px 8px; text-align: left;
+    border-bottom: 1px solid var(--maroon-light);
+  }
+  .conj-table td { padding: 7px 8px; border-bottom: 1px solid var(--maroon-dark); vertical-align: top; }
+  .conj-table tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+  .conj-kata { color: var(--gold-light); font-size: 0.85rem; }
+  .conj-kn { color: var(--text-dim); font-size: 0.72rem; }
+  .section-card {
+    background: var(--card-bg); border: 1px solid var(--maroon-light);
+    border-radius: 12px; padding: 16px; margin: 0 16px;
+  }
+  .section-card h3 { color: var(--gold); font-size: 0.9rem; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ಕನ್ನಡ カンナダ語</h1>
+  <div class="header-right">
+    <div class="streak-badge" id="streakBadge">🔥 0日</div>
+    <button class="btn-settings" onclick="openSettings()">⚙️</button>
+  </div>
+</header>
+
+<!-- 設定モーダル -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsIfOutside(event)">
+  <div class="modal-sheet">
+    <h2>⚙️ 学習設定</h2>
+    <div class="setting-row">
+      <div class="setting-label">✨ 今日の新規 — 1日に学ぶ語数</div>
+      <div class="count-selector" id="newCountSelector"></div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">🔄 昨日の復習 — 復習する語数 (0=全て)</div>
+      <div class="count-selector" id="reviewCountSelector"></div>
+    </div>
+    <button class="btn-close-modal" onclick="closeSettings()">閉じる</button>
+  </div>
+</div>
+
+<div id="homeScreen">
+  <div style="padding:16px 16px 0">
+    <div class="section-label">TODAY'S PLAN</div>
+    <div id="todayBox"></div>
+  </div>
+  <div style="padding:0 16px">
+    <div class="section-label">カテゴリ別進捗</div>
+    <div id="catList"></div>
+    <div class="section-label">文法リファレンス</div>
+    <div class="cat-special" onclick="openConjTable()">
+      <div class="cat-special-icon">📖</div>
+      <div>
+        <div class="cat-special-text">動詞 ಇರು 活用一覧</div>
+        <div class="cat-special-sub">いる/ある — 人称別の語尾変化</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="studyScreen">
+  <div class="study-header">
+    <button class="btn-back" onclick="goHome()">← ホーム</button>
+    <span class="study-title" id="studyTitle"></span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-label" id="progressLabel"></div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="mainArea" class="card-area"></div>
+  <div class="buttons">
+    <button class="btn btn-again" id="btnAgain" disabled>もう一度 🔁</button>
+    <button class="btn btn-skip"  id="btnSkip"  disabled>次へ →</button>
+    <button class="btn btn-got"   id="btnGot"   disabled>覚えた ✓</button>
+  </div>
+  <div class="queue-info" id="queueInfo"></div>
+</div>
+
+<script>
+const PHRASES = [
+  {id:1,cat:"挨拶",ja:"こんにちは",kata:"ナマスカーラ",kn:"ನಮಸ್ಕಾರ",gr:"挨拶の定型表現(ヒンドゥー語由来)",
+   words:[{kata:"ナマスカーラ",kn:"ನಮಸ್ಕಾರ",pos:"感動詞",gloss:"挨拶・敬礼の定型表現。朝昼晩・別れ際どれにも使える万能挨拶"}]},
+  {id:2,cat:"挨拶",ja:"お元気ですか?",kata:"ヘーゲ イッディーラ?",kn:"ಹೇಗೆ ಇದ್ದೀರಾ?",gr:"疑問副詞+動詞ಇರう(二人称尊敬形)",
+   words:[{kata:"ヘーゲ",kn:"ಹೇಗೆ",pos:"疑問副詞",gloss:"「どのように」。英語のhow"},{kata:"イッディーラ",kn:"ಇದ್ದೀರಾ",pos:"動詞ಇರう(いる)の現在形・二人称尊敬",gloss:"ಇರu(いる/ある)の活用。-ಈರಾの語尾が「あなた(尊敬)」を表す"}]},
+  {id:3,cat:"挨拶",ja:"元気です",kata:"チャンナーギッデーネ",kn:"ಚೆನ್ನಾಗಿದ್ದೇನೆ",gr:"副詞+動詞ಇರう(一人称)",
+   words:[{kata:"チャンナーギ",kn:"ಚೆನ್ನಾಗಿ",pos:"副詞",gloss:"「よく・うまく」"},{kata:"ッデーネ",kn:"ದ್ದೇನೆ",pos:"動詞ಇರう(いる)の現在形・一人称",gloss:"-ಏನೆの語尾が「私は」を表す"}]},
+  {id:4,cat:"挨拶",ja:"さようなら",kata:"バー バー / ホーギ バンニ",kn:"ಬಾ ಬಾ / ಹೋಗಿ ಬನ್ನಿ",gr:"別れの挨拶(口語: バー バー / 丁寧: ホーギ バンニ)",
+   words:[{kata:"バー バー",kn:"ಬಾ ಬಾ",pos:"感動詞(口語)",gloss:"気軽な別れの言葉。友人・同僚向け"},{kata:"ホーギ バンニ",kn:"ಹೋಗಿ ಬನ್ನಿ",pos:"動詞句(丁寧)",gloss:"「行って来てください」が語源の丁寧な別れの挨拶"}]},
+  {id:5,cat:"挨拶",ja:"私の名前は＿＿です",kata:"ナンナ ヘサル ___",kn:"ನನ್ನ ಹೆಸರು ___",gr:"所有代名詞+名詞(be動詞省略)",
+   words:[{kata:"ナンナ",kn:"ನನ್ನ",pos:"所有代名詞",gloss:"「私の」。ನಾನu(私)の属格形"},{kata:"ヘサル",kn:"ಹೆಸರು",pos:"名詞",gloss:"「名前」。名詞文ではbe動詞を省略できる"}]},
+  {id:6,cat:"挨拶",ja:"あなたの名前は?",kata:"ニンナ ヘサル エーヌ?",kn:"ನಿನ್ನ ಹೆಸರು ಏನು?",gr:"所有代名詞+名詞+疑問詞(親しい相手向け)",
+   words:[{kata:"ニンナ",kn:"ನಿನ್ನ",pos:"所有代名詞",gloss:"「あなたの」(タメ口)"},{kata:"ヘサル",kn:"ಹೆಸರು",pos:"名詞",gloss:"「名前」"},{kata:"エーヌ",kn:"ಏನು",pos:"疑問詞",gloss:"「何」。英語のwhat"}]},
+  {id:7,cat:"お礼・お詫び",ja:"ありがとう",kata:"ダンニャワーダガル",kn:"ಧನ್ಯವಾದಗಳು",gr:"名詞の複数形(丁寧な感謝表現)",
+   words:[{kata:"ダンニャワーダ",kn:"ಧನ್ಯವಾದ",pos:"名詞",gloss:"「感謝」(サンスクリット語由来)"},{kata:"ガル",kn:"ಗಳು",pos:"複数形語尾",gloss:"複数・丁寧を表す接尾辞"}]},
+  {id:8,cat:"お礼・お詫び",ja:"すみません / 失礼します",kata:"クシャミーシ",kn:"ಕ್ಷಮಿಸಿ",gr:"動詞ಕ್ಷಮಿಸu(許す)の命令形・丁寧",
+   words:[{kata:"クシャミーシ",kn:"ಕ್ಷಮಿಸಿ",pos:"動詞命令形(丁寧)",gloss:"「許してください」が直訳。呼びかけ・謝罪・通り抜けるときなど幅広く使う"}]},
+  {id:9,cat:"お礼・お詫び",ja:"ごめんなさい",kata:"クシャミシ ビディ",kn:"ಕ್ಷಮಿಸಿ ಬಿಡಿ",gr:"動詞+補助動詞(丁寧な依頼)",
+   words:[{kata:"クシャミシ",kn:"ಕ್ಷಮಿಸಿ",pos:"動詞ಕ್ಷಮಿಸu(許す)の連用形",gloss:"「許して」"},{kata:"ビディ",kn:"ಬಿಡಿ",pos:"補助動詞(丁寧命令)",gloss:"「〜してください」という依頼の補助動詞"}]},
+  {id:10,cat:"はい・いいえ",ja:"はい",kata:"ハウドゥ",kn:"ಹೌದು",gr:"肯定応答の不変化詞",
+   words:[{kata:"ハウドゥ",kn:"ಹೌದು",pos:"不変化詞(応答)",gloss:"「そうです・はい」。カンナダ語固有の表現"}]},
+  {id:11,cat:"はい・いいえ",ja:"いいえ",kata:"イッラ",kn:"ಇಲ್ಲ",gr:"否定の不変化詞",
+   words:[{kata:"イッラ",kn:"ಇಲ್ಲ",pos:"否定不変化詞",gloss:"「ない・いいえ」。存在の否定にも使う"}]},
+  {id:12,cat:"はい・いいえ",ja:"分かりました",kata:"アルターイトゥ",kn:"ಅರ್ಥಾಯಿತು",gr:"動詞ಅರ್ಥ(理解)の完了形",
+   words:[{kata:"アルター",kn:"ಅರ್ಥ",pos:"名詞・語根",gloss:"「意味・理解」(サンスクリット語由来)"},{kata:"アイトゥ",kn:"ಆಯಿತು",pos:"動詞ಆಗu(なる)の完了形",gloss:"直訳「理解になった」"}]},
+  {id:13,cat:"はい・いいえ",ja:"分かりません",kata:"アルター アーガラ",kn:"ಅರ್ಥ ಆಗಲ್ಲ",gr:"名詞+動詞の否定形",
+   words:[{kata:"アルター",kn:"ಅರ್ಥ",pos:"名詞",gloss:"「意味・理解」"},{kata:"アーガラ",kn:"ಆಗಲ್ಲ",pos:"動詞ಆಗu(なる)の現在否定",gloss:"-ಲ್ಲが否定を表す語尾。直訳「理解にならない」"}]},
+  {id:14,cat:"依頼",ja:"〜をください",kata:"___ コーディ",kn:"___ ಕೊಡಿ",gr:"動詞ಕೊಡu(与える)の命令形・丁寧",
+   words:[{kata:"コーディ",kn:"ಕೊಡಿ",pos:"動詞ಕೊಡu(与える)の命令形(丁寧)",gloss:"「与えてください」"}]},
+  {id:15,cat:"依頼",ja:"水をください",kata:"ニールー コーディ",kn:"ನೀರು ಕೊಡಿ",gr:"名詞+動詞命令形",
+   words:[{kata:"ニールー",kn:"ನೀರು",pos:"名詞",gloss:"「水」"},{kata:"コーディ",kn:"ಕೊಡಿ",pos:"動詞ಕೊಡu(与える)の命令形(丁寧)",gloss:"「ください」"}]},
+  {id:16,cat:"依頼",ja:"ちょっと待ってください",kata:"スワルパ イリ",kn:"ಸ್ವಲ್ಪ ಇರಿ",gr:"副詞+動詞ಇರう命令形",
+   words:[{kata:"スワルパ",kn:"ಸ್ವಲ್ಪ",pos:"副詞",gloss:"「少し・ちょっと」"},{kata:"イリ",kn:"ಇರಿ",pos:"動詞ಇರう(いる)の命令形(丁寧)",gloss:"「いてください→待ってください」"}]},
+  {id:17,cat:"依頼",ja:"繰り返してください",kata:"マッテ ヘーリ",kn:"ಮತ್ತೆ ಹೇಳಿ",gr:"副詞+動詞命令形",
+   words:[{kata:"マッテ",kn:"ಮತ್ತೆ",pos:"副詞",gloss:"「もう一度・また」"},{kata:"ヘーリ",kn:"ಹೇಳಿ",pos:"動詞ಹೇಳu(言う)の命令形(丁寧)",gloss:"「言ってください」"}]},
+  {id:18,cat:"依頼",ja:"いくらですか?",kata:"エシュトゥ アーグッテ?",kn:"ಎಷ್ಟು ಆಗುತ್ತೆ?",gr:"疑問副詞+動詞ಆಗu現在形",
+   words:[{kata:"エシュトゥ",kn:"ಎಷ್ಟು",pos:"疑問副詞",gloss:"「いくら・どれだけ」"},{kata:"アーグッテ",kn:"ಆಗುತ್ತೆ",pos:"動詞ಆಗu(なる)の現在形",gloss:"直訳「いくらになりますか」"}]},
+  {id:19,cat:"日常会話",ja:"カンナダ語は少し話せます",kata:"スワルパ スワルパ カンナダ ゴットゥ",kn:"ಸ್ವಲ್ಪ ಸ್ವಲ್ಪ ಕನ್ನಡ ಗೊತ್ತು",gr:"副詞反復+名詞+知覚動詞",
+   words:[{kata:"スワルパ スワルパ",kn:"ಸ್ವಲ್ಪ ಸ್ವಲ್ಪ",pos:"副詞(反復)",gloss:"「ほんの少しだけ」。繰り返すと強調"},{kata:"カンナダ",kn:"ಕನ್ನಡ",pos:"固有名詞",gloss:"カンナダ語"},{kata:"ゴットゥ",kn:"ಗೊತ್ತು",pos:"知覚動詞(不変)",gloss:"「分かる・知っている」。主語に関係なく形が変わらない"}]},
+  {id:20,cat:"日常会話",ja:"日本から来ました",kata:"ナーヌ ジャパーンニンダ バンディッデーネ",kn:"ನಾನು ಜಪಾನ್‌ನಿಂದ ಬಂದಿದ್ದೇನೆ",gr:"主語+出発点格+動詞完了形",
+   words:[{kata:"ナーヌ",kn:"ನಾನು",pos:"一人称代名詞",gloss:"「私」"},{kata:"ジャパーンニンダ",kn:"ಜಪಾನ್‌ನಿಂದ",pos:"名詞+奪格語尾-ನಿಂದ",gloss:"「日本から」。-ニンダが「〜から」を表す奪格"},{kata:"バンディッデーネ",kn:"ಬಂದಿದ್ದೇನೆ",pos:"動詞ಬರu(来る)の完了形・一人称",gloss:"ಬರu(来る)の完了形"}]},
+  {id:21,cat:"日常会話",ja:"トイレはどこですか?",kata:"ショウチャーラヤ エッリデ?",kn:"ಶೌಚಾಲಯ ಎಲ್ಲಿದೆ?",gr:"名詞+疑問副詞+存在動詞",
+   words:[{kata:"ショウチャーラヤ",kn:"ಶೌಚಾಲಯ",pos:"名詞",gloss:"「トイレ」(フォーマル)"},{kata:"エッリデ",kn:"ಎಲ್ಲಿದೆ",pos:"疑問副詞+動詞ಇರu",gloss:"エッリ(どこ)+イデ(ある)。「どこにありますか」"}]},
+  {id:22,cat:"日常会話",ja:"美味しい!",kata:"トゥンバ チャンナーギデ!",kn:"ತುಂಬಾ ಚೆನ್ನಾಗಿದೆ!",gr:"副詞+形容詞+動詞",
+   words:[{kata:"トゥンバ",kn:"ತುಂಬಾ",pos:"副詞",gloss:"「とても・非常に」"},{kata:"チャンナーギデ",kn:"ಚೆನ್ನಾಗಿದೆ",pos:"形容詞+動詞ಇರu",gloss:"ಚೆನ್ನಾಗಿ(よく)+ಇದೆ(ある)。「よい状態だ」"}]},
+  {id:23,cat:"日常会話",ja:"辛い!",kata:"カーラ アーギデ!",kn:"ಖಾರ ಆಗಿದೆ!",gr:"形容詞+動詞ಆಗu",
+   words:[{kata:"カーラ",kn:"ಖಾರ",pos:"形容詞/名詞",gloss:"「辛さ・スパイシー」"},{kata:"アーギデ",kn:"ಆಗಿದೆ",pos:"動詞ಆಗu(なる)の完了進行形",gloss:"「〜になっている」→辛くなっている状態"}]},
+  {id:24,cat:"日常会話",ja:"会議は何時ですか?",kata:"ミーティング エシュトゥ ガンテゲ?",kn:"ಮೀಟಿಂಗ್ ಎಷ್ಟು ಗಂಟೆಗೆ?",gr:"名詞+疑問副詞+時間名詞+与格",
+   words:[{kata:"ミーティング",kn:"ಮೀಟಿಂಗ್",pos:"名詞(英語借用語)",gloss:"「会議」"},{kata:"エシュトゥ",kn:"ಎಷ್ಟು",pos:"疑問副詞",gloss:"「いくら・何」"},{kata:"ガンテゲ",kn:"ಗಂಟೆಗೆ",pos:"名詞+与格-ゲ",gloss:"「〜時に」。ガンテ=時間/時計"}]},
+  {id:25,cat:"数字",ja:"1・2・3",kata:"オンドゥ・エラドゥ・ムールー",kn:"ಒಂದು・ಎರಡು・ಮೂರು",gr:"基数詞(1〜3)",
+   words:[{kata:"オンドゥ",kn:"ಒಂದು",pos:"数詞",gloss:"「1」"},{kata:"エラドゥ",kn:"ಎರಡು",pos:"数詞",gloss:"「2」"},{kata:"ムールー",kn:"ಮೂರು",pos:"数詞",gloss:"「3」"}]},
+  {id:26,cat:"数字",ja:"4・5・6",kata:"ナールク・アイドゥ・アールー",kn:"ನಾಲ್ಕು・ಐದು・ಆರು",gr:"基数詞(4〜6)",
+   words:[{kata:"ナールク",kn:"ನಾಲ್ಕು",pos:"数詞",gloss:"「4」"},{kata:"アイドゥ",kn:"ಐದು",pos:"数詞",gloss:"「5」"},{kata:"アールー",kn:"ಆರು",pos:"数詞",gloss:"「6」"}]},
+  {id:27,cat:"数字",ja:"7・8・9・10",kata:"エールー・エントゥ・オンバットゥ・ハットゥ",kn:"ಏಳು・ಎಂಟು・ಒಂಬತ್ತು・ಹತ್ತು",gr:"基数詞(7〜10)",
+   words:[{kata:"エールー",kn:"ಏಳು",pos:"数詞",gloss:"「7」"},{kata:"エントゥ",kn:"ಎಂಟು",pos:"数詞",gloss:"「8」"},{kata:"オンバットゥ",kn:"ಒಂಬತ್ತು",pos:"数詞",gloss:"「9」"},{kata:"ハットゥ",kn:"ಹತ್ತು",pos:"数詞",gloss:"「10」"}]},
+  {id:28,cat:"数字",ja:"100・1000",kata:"ノールー・サーヴィラ",kn:"ನೂರು・ಸಾವಿರ",gr:"大きな数",
+   words:[{kata:"ノールー",kn:"ನೂರು",pos:"数詞",gloss:"「100」"},{kata:"サーヴィラ",kn:"ಸಾವಿರ",pos:"数詞",gloss:"「1000」"}]},
+  {id:29,cat:"日常会話",ja:"これは何ですか?",kata:"イドゥ エーヌ?",kn:"ಇದು ಏನು?",gr:"指示代名詞+疑問詞",
+   words:[{kata:"イドゥ",kn:"ಇದು",pos:"指示代名詞(近称・中性)",gloss:"「これ(もの)」。近くのものを指す"},{kata:"エーヌ",kn:"ಏನು",pos:"疑問詞",gloss:"「何」"}]},
+  {id:30,cat:"日常会話",ja:"問題ありません / 大丈夫です",kata:"パルワーギラ",kn:"ಪರ್ವಾಗಿಲ್ಲ",gr:"慣用表現(否定形)",
+   words:[{kata:"パルワー",kn:"ಪರ್ವಾ",pos:"名詞(借用語)",gloss:"「心配・問題」(ヒンディー語由来)"},{kata:"ギルラ",kn:"ಇಲ್ಲ",pos:"否定不変化詞",gloss:"「ない」。パルワーギルラ→「問題ない」"}]}
+];
+
+const IRRU_CONJ = [
+  {person:"一人称(私)",kata:"イッデーネ",kn:"ಇದ್ದೇನೆ",note:"ナーヌ イッデーネ (私はいる)"},
+  {person:"二人称(あなた・丁寧)",kata:"イッディーラ",kn:"ಇದ್ದೀರಾ",note:"ニーヴー イッディーラ (あなたはいますか?)"},
+  {person:"二人称(タメ口)",kata:"イッダーナ",kn:"ಇದ್ದಾನ",note:"ニーヌ イッダーナ (お前はいるか?)"},
+  {person:"三人称・男性",kata:"イッダーネ",kn:"ಇದ್ದಾನೆ",note:"アワヌ イッダーネ (彼はいる)"},
+  {person:"三人称・女性",kata:"イッダーレ",kn:"ಇದ್ದಾಳೆ",note:"アワル イッダーレ (彼女はいる)"},
+  {person:"三人称・尊敬/複数",kata:"イッダーレ",kn:"ಇದ್ದಾರೆ",note:"アワル イッダーレ (彼らはいる)"},
+  {person:"命令形・丁寧",kata:"イリ",kn:"ಇರಿ",note:"スワルパ イリ (少し待って)"},
+];
+
+const CATS_ORDER = ['挨拶','お礼・お詫び','はい・いいえ','依頼','日常会話','数字'];
+
+// ─── STORAGE ─────────────────────────────────────────
+const KEY_PROGRESS = 'kannada_progress_v1';
+const KEY_STREAK   = 'kannada_streak_v1';
+const KEY_DAILY    = 'kannada_daily_v1';
+const KEY_SETTINGS = 'kannada_settings_v1';
+let progress = {};
+let streak = {count:0, lastDate:''};
+let daily = {};
+let settings = {newCount: 3, reviewCount: 0}; // reviewCount 0=全て
+
+function loadStorage() {
+  try {
+    const p = localStorage.getItem(KEY_PROGRESS);
+    if (p) progress = JSON.parse(p);
+    const s = localStorage.getItem(KEY_STREAK);
+    if (s) streak = JSON.parse(s);
+    const d = localStorage.getItem(KEY_DAILY);
+    if (d) daily = JSON.parse(d);
+    const c = localStorage.getItem(KEY_SETTINGS);
+    if (c) settings = {...settings, ...JSON.parse(c)};
+  } catch(e) {}
+}
+function saveProgress() {
+  try { localStorage.setItem(KEY_PROGRESS, JSON.stringify(progress)); } catch(e) {}
+}
+function saveStreak() {
+  try { localStorage.setItem(KEY_STREAK, JSON.stringify(streak)); } catch(e) {}
+}
+function saveDaily() {
+  try { localStorage.setItem(KEY_DAILY, JSON.stringify(daily)); } catch(e) {}
+}
+function saveSettings() {
+  try { localStorage.setItem(KEY_SETTINGS, JSON.stringify(settings)); } catch(e) {}
+}
+
+// ─── SETTINGS UI ─────────────────────────────────────
+function openSettings() {
+  renderCountSelector('newCountSelector',    [1,2,3,5,7,10], settings.newCount,    v => { settings.newCount = v;    saveSettings(); });
+  renderCountSelector('reviewCountSelector', [0,1,2,3,5,7],  settings.reviewCount, v => { settings.reviewCount = v; saveSettings(); });
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+  renderHome();
+}
+function closeSettingsIfOutside(e) {
+  if (e.target === document.getElementById('settingsModal')) closeSettings();
+}
+function renderCountSelector(id, options, current, onChange) {
+  const el = document.getElementById(id);
+  el.innerHTML = options.map(v => `
+    <button class="count-btn${v===current?' selected':''}" onclick="selectCount('${id}', ${v}, this)">
+      ${v === 0 ? '全て' : v}
+    </button>`).join('');
+  el._onChange = onChange;
+}
+function selectCount(id, value, btn) {
+  const el = document.getElementById(id);
+  el.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  el._onChange(value);
+}
+
+// ─── STREAK ──────────────────────────────────────────
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function recordPractice() {
+  const today = todayStr();
+  if (streak.lastDate === today) return;
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  streak.count = (streak.lastDate === yesterday) ? streak.count + 1 : 1;
+  streak.lastDate = today;
+  saveStreak();
+  renderStreakBadge();
+}
+function renderStreakBadge() {
+  document.getElementById('streakBadge').textContent = '🔥 ' + streak.count + '日';
+}
+
+// ─── DAILY PLAN ──────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function getDailyPlan() {
+  const today = todayStr();
+  const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+
+  // 今日の新規フレーズ（まだなければ設定値の語数で割り当て）
+  if (!daily[today] || daily[today].length === 0) {
+    const usedIds = new Set(Object.values(daily).flat());
+    const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
+    let picked;
+    if (unlearned.length >= settings.newCount) {
+      picked = shuffle(unlearned).slice(0, settings.newCount);
+    } else {
+      // 全フレーズ割り当て済み → スコアが低い順に選び直し
+      const sorted = [...PHRASES].sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
+      picked = sorted.slice(0, settings.newCount);
+    }
+    daily[today] = picked.map(p => p.id);
+    saveDaily();
+  }
+
+  // 復習: settings.reviewCount === 0 なら昨日の全語、それ以外は先頭N語
+  const allReview = daily[yesterday] || [];
+  const reviewIds = settings.reviewCount === 0 ? allReview : allReview.slice(0, settings.reviewCount);
+
+  return {
+    newIds: daily[today] || [],
+    reviewIds
+  };
+}
+
+function phrasePreviews(ids) {
+  return ids.map(id => {
+    const p = PHRASES.find(ph => ph.id === id);
+    return p ? p.kata : '';
+  }).join('  /  ');
+}
+
+// ─── HOME ────────────────────────────────────────────
+function renderHome() {
+  renderStreakBadge();
+  const { newIds, reviewIds } = getDailyPlan();
+  const totalMastered = PHRASES.filter(p => (progress[p.id]||0)>=5).length;
+
+  const box = document.getElementById('todayBox');
+  const allDone = PHRASES.filter(p => !Object.values(daily).flat().includes(p.id)).length === 0
+               && PHRASES.length - totalMastered === 0;
+
+  let html = '';
+
+  // 復習ボックス
+  if (reviewIds.length > 0) {
+    html += `
+    <div class="daily-block review-block">
+      <div class="daily-block-header">
+        <span class="daily-icon">🔄</span>
+        <div>
+          <div class="daily-title">昨日の復習 (${reviewIds.length}語)</div>
+          <div class="daily-preview">${phrasePreviews(reviewIds)}</div>
+        </div>
+      </div>
+      <button class="btn-daily btn-review" onclick="openStudyByIds(${JSON.stringify(reviewIds)}, '昨日の復習')">復習する →</button>
+    </div>`;
+  }
+
+  // 新規ボックス
+  const remaining = PHRASES.filter(p => !Object.values(daily).flat().includes(p.id)).length;
+  if (newIds.length > 0) {
+    html += `
+    <div class="daily-block new-block">
+      <div class="daily-block-header">
+        <span class="daily-icon">✨</span>
+        <div>
+          <div class="daily-title">今日の新規 (${newIds.length}語)</div>
+          <div class="daily-preview">${phrasePreviews(newIds)}</div>
+        </div>
+      </div>
+      <button class="btn-daily btn-new" onclick="openStudyByIds(${JSON.stringify(newIds)}, '今日の新規')">学ぶ →</button>
+    </div>`;
+  } else {
+    html += `<div class="daily-block new-block"><div style="text-align:center;padding:10px;color:var(--gold)">🎉 全フレーズ学習済み！カテゴリ別で復習しましょう</div></div>`;
+  }
+
+  html += `<div class="daily-sub">全体進捗: ${totalMastered}/${PHRASES.length} 定着済み　残り未学習: ${remaining}語</div>`;
+  box.innerHTML = html;
+
+  const list = document.getElementById('catList');
+  list.innerHTML = '';
+  CATS_ORDER.forEach(c => {
+    const phrases = PHRASES.filter(p => p.cat===c);
+    const mastered = phrases.filter(p => (progress[p.id]||0)>=5).length;
+    const pct = Math.round(mastered/phrases.length*100);
+    const div = document.createElement('div');
+    div.className = 'cat-card';
+    div.innerHTML = `<div class="cat-card-top"><span class="cat-name">${c}</span><span class="cat-count">${mastered}/${phrases.length} (${pct}%)</span></div><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%"></div></div>`;
+    div.onclick = () => openStudy(c);
+    list.appendChild(div);
+  });
+}
+
+function openConjTable() { openStudy('動詞ಇರu活用'); }
+
+// ─── STUDY ───────────────────────────────────────────
+let currentCat   = 'すべて';
+let currentIds   = null;
+let currentTitle = '';
+let currentPhrase = null;
+let revealed = false;
+let sessionQueue = []; // デイリーモード用キュー
+
+function openStudy(cat) {
+  currentCat   = cat;
+  currentIds   = null;
+  currentTitle = cat;
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('studyScreen').style.display = 'block';
+  document.getElementById('studyTitle').textContent = cat;
+  buildTabs(); updateProgress(); nextCard();
+  recordPractice();
+}
+
+function openStudyByIds(ids, title) {
+  currentCat   = '__daily__';
+  currentIds   = ids;
+  currentTitle = title;
+  sessionQueue = [...ids]; // キュー初期化
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('studyScreen').style.display = 'block';
+  document.getElementById('studyTitle').textContent = title;
+  buildTabs(); updateProgress(); nextCard();
+  recordPractice();
+}
+
+function goHome() {
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  document.getElementById('studyScreen').style.display = 'none';
+  document.getElementById('homeScreen').style.display = 'block';
+  renderHome();
+}
+
+const ALL_TABS = ['すべて',...CATS_ORDER,'動詞ಇರu活用'];
+
+function buildTabs() {
+  const el = document.getElementById('tabs');
+  el.innerHTML = '';
+  // デイリーモードはタブ非表示（タイトルだけ表示）
+  if (currentCat === '__daily__') {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
+  ALL_TABS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (c===currentCat?' active':'');
+    btn.textContent = c;
+    btn.onclick = () => { currentCat=c; currentIds=null; buildTabs(); updateProgress(); nextCard(); };
+    el.appendChild(btn);
+  });
+  const active = el.querySelector('.tab.active');
+  if (active) active.scrollIntoView({inline:'center',behavior:'smooth'});
+}
+
+function updateProgress() {
+  if (currentCat==='動詞ಇರu活用') {
+    document.getElementById('progressLabel').textContent='動詞ಇರu活用一覧';
+    document.getElementById('progressFill').style.width='100%';
+    return;
+  }
+  const phrases = filteredPhrases();
+  const mastered = phrases.filter(p=>(progress[p.id]||0)>=5).length;
+  const pct = phrases.length ? Math.round(mastered/phrases.length*100) : 0;
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressLabel').textContent = '定着済み '+mastered+'/'+phrases.length+' ('+pct+'%)';
+}
+
+function filteredPhrases() {
+  if (currentIds) return PHRASES.filter(p => currentIds.includes(p.id));
+  if (currentCat==='すべて') return PHRASES;
+  if (currentCat==='動詞ಇರu活用') return [];
+  return PHRASES.filter(p=>p.cat===currentCat);
+}
+
+function pickNextPhrase() {
+  const pool = filteredPhrases();
+  if (!pool.length) return null;
+  const weights = pool.map(p=>Math.max(1,6-(progress[p.id]||0)));
+  const total = weights.reduce((a,b)=>a+b,0);
+  let rand = Math.random()*total;
+  for (let i=0;i<pool.length;i++) { rand-=weights[i]; if (rand<=0) return pool[i]; }
+  return pool[pool.length-1];
+}
+
+// ─── SPEECH ──────────────────────────────────────────
+function speak(text) {
+  if (!window.speechSynthesis) { alert('このブラウザは音声未対応です'); return; }
+  speechSynthesis.cancel();
+  const btn = document.getElementById('audioBtn');
+  if (btn) btn.classList.add('speaking');
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'kn-IN';
+  utt.rate = 0.85;
+  utt.onend = utt.onerror = () => { if (btn) btn.classList.remove('speaking'); };
+  speechSynthesis.speak(utt);
+}
+
+// ─── RENDER ──────────────────────────────────────────
+function renderScoreDots(score) {
+  let h='<div class="score-dots">';
+  for(let i=0;i<5;i++) h+=`<div class="dot${i<score?' filled':''}"></div>`;
+  return h+'</div>';
+}
+
+function renderConjugationTable() {
+  document.getElementById('mainArea').innerHTML = `
+    <div class="section-card">
+      <h3>動詞 ಇರು (いる/ある) の人称活用</h3>
+      <p style="font-size:0.72rem;color:var(--text-dim);margin-bottom:8px;">「お元気ですか?」「少し待って」など頻出する動詞です。</p>
+      <table class="conj-table">
+        <tr><th>人称</th><th>カタカナ / カンナダ文字</th><th>例</th></tr>
+        ${IRRU_CONJ.map(r=>`<tr><td>${r.person}</td><td><span class="conj-kata">${r.kata}</span><br><span class="conj-kn">${r.kn}</span></td><td style="font-size:0.7rem;color:var(--text-dim)">${r.note}</td></tr>`).join('')}
+      </table>
+    </div>`;
+  document.getElementById('btnAgain').disabled=true;
+  document.getElementById('btnGot').disabled=true;
+  document.getElementById('queueInfo').textContent='';
+}
+
+function findRelated(phrase) {
+  const myKns = new Set(phrase.words.map(w => w.kn));
+  return PHRASES.filter(p => p.id !== phrase.id && p.words.some(w => myKns.has(w.kn))).slice(0, 4);
+}
+
+function renderCard(phrase) {
+  const score = progress[phrase.id]||0;
+  if (!revealed) {
+    document.getElementById('mainArea').innerHTML = `
+      <div class="card" onclick="revealCard()">
+        <div class="cat-badge">${phrase.cat}</div>
+        ${renderScoreDots(score)}
+        <div class="ja">${phrase.ja}</div>
+        <div class="tap-hint">▼ タップして確認</div>
+      </div>`;
+  } else {
+    const safeKn = phrase.kn.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const wordsHtml = phrase.words.map(w => `
+      <div class="word-row">
+        <div class="word-row-top">
+          <span class="wkata">${w.kata}</span>
+          <span class="wkn">${w.kn}</span>
+          <span class="wpos">${w.pos}</span>
+        </div>
+        <div class="wgloss">${w.gloss}</div>
+      </div>`).join('');
+    const related = findRelated(phrase);
+    const relatedHtml = related.length ? `
+      <div class="related-block">
+        <h4>🔗 同じ単語を使うフレーズ</h4>
+        <div class="related-chips">
+          ${related.map(p=>`<span class="related-chip" onclick="jumpToPhrase(${p.id})">${p.ja}</span>`).join('')}
+        </div>
+      </div>` : '';
+    document.getElementById('mainArea').innerHTML = `
+      <div class="card">
+        <div class="cat-badge">${phrase.cat}</div>
+        ${renderScoreDots(score)}
+        <div class="kata">${phrase.kata}</div>
+        <div class="kn">${phrase.kn}</div>
+        <div class="gr-tag">${phrase.gr}</div>
+        <button class="audio-btn" id="audioBtn" onclick="speak('${safeKn}')">🔊 発音を聞く</button>
+        <div class="word-breakdown">
+          <h4>単語の内訳</h4>
+          ${wordsHtml}
+        </div>
+        ${relatedHtml}
+      </div>`;
+  }
+}
+
+function jumpToPhrase(id) {
+  const p = PHRASES.find(ph => ph.id === id);
+  if (!p) return;
+  currentPhrase = p;
+  revealed = true;
+  renderCard(currentPhrase);
+}
+
+function revealCard() {
+  if (revealed) return;
+  revealed=true;
+  document.getElementById('btnAgain').disabled=false;
+  document.getElementById('btnSkip').disabled=false;
+  document.getElementById('btnGot').disabled=false;
+  renderCard(currentPhrase);
+}
+
+function nextCard() {
+  if (currentCat==='動詞ಇರu活用') { renderConjugationTable(); return; }
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  revealed=false;
+  document.getElementById('btnAgain').disabled=true;
+  document.getElementById('btnSkip').disabled=true;
+  document.getElementById('btnGot').disabled=true;
+
+  if (currentIds) {
+    // デイリーモード: キューから順番に取り出す
+    if (sessionQueue.length === 0) {
+      document.getElementById('mainArea').innerHTML=`<div class="empty-state"><div class="big">🎉</div>全フレーズ完了！ホームに戻ってください</div>`;
+      document.getElementById('queueInfo').textContent='';
+      return;
+    }
+    const nextId = sessionQueue.shift();
+    currentPhrase = PHRASES.find(p => p.id === nextId) || null;
+    if (!currentPhrase) { nextCard(); return; }
+    renderCard(currentPhrase);
+    const total = currentIds.length;
+    const done  = total - sessionQueue.length;
+    document.getElementById('queueInfo').textContent = done + ' / ' + total;
+  } else {
+    // カテゴリモード: 重み付きランダム
+    currentPhrase=pickNextPhrase();
+    if (!currentPhrase) {
+      document.getElementById('mainArea').innerHTML=`<div class="empty-state"><div class="big">🎉</div>このカテゴリのフレーズはありません</div>`;
+      document.getElementById('queueInfo').textContent='';
+      return;
+    }
+    renderCard(currentPhrase);
+    const remaining=filteredPhrases().filter(p=>(progress[p.id]||0)<5).length;
+    document.getElementById('queueInfo').textContent='残り未定着: '+remaining+'フレーズ';
+  }
+}
+
+document.getElementById('btnAgain').onclick=function(){
+  const id=currentPhrase.id;
+  progress[id]=Math.max(0,(progress[id]||0)-1);
+  saveProgress(); updateProgress();
+  if (currentIds) sessionQueue.push(id); // デイリーモードは末尾に再追加
+  // 同じカードの表に戻る
+  revealed=false;
+  document.getElementById('btnAgain').disabled=true;
+  document.getElementById('btnSkip').disabled=true;
+  document.getElementById('btnGot').disabled=true;
+  renderCard(currentPhrase);
+};
+document.getElementById('btnSkip').onclick=function(){
+  nextCard(); // スコア変更なしで次へ
+};
+document.getElementById('btnGot').onclick=function(){
+  const id=currentPhrase.id;
+  progress[id]=Math.min(5,(progress[id]||0)+1);
+  saveProgress(); updateProgress(); nextCard();
+};
+
+// ─── UPDATE CHECK ────────────────────────────────────
+const APP_VERSION = '20260702-011';
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(location.href + '?_=' + Date.now(), {cache: 'no-store'});
+    const text = await res.text();
+    const m = text.match(/APP_VERSION = '([^']+)'/);
+    if (m && m[1] !== APP_VERSION) {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:var(--gold);color:var(--maroon-dark);padding:14px 16px;text-align:center;font-weight:bold;font-size:0.9rem;z-index:999;cursor:pointer;font-family:inherit;';
+      banner.innerHTML = '🆕 アップデートがあります。タップして更新';
+      banner.onclick = () => location.reload(true);
+      document.body.appendChild(banner);
+    }
+  } catch(e) {}
+}
+
+// ─── INIT ────────────────────────────────────────────
+loadStorage();
+renderHome();
+checkForUpdate();
+</script>
+</body>
+</html>
