@@ -1,0 +1,1094 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#4f46e5">
+<title>Life Goal Tracker</title>
+<style>
+:root{
+  --bg:#f5f6f8;
+  --card-bg:#ffffff;
+  --text:#1c1e21;
+  --text-muted:#6b7280;
+  --border:#e5e7eb;
+  --primary:#4f46e5;
+  --primary-dark:#4338ca;
+  --danger:#dc2626;
+  --radius:14px;
+  --tabbar-height:62px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(var(--tabbar-height) + env(safe-area-inset-bottom) + 16px);
+}
+h1,h2,h3{margin:0 0 8px;}
+h1{font-size:22px;}
+h2.section-title{font-size:15px;color:var(--text-muted);margin-top:24px;font-weight:600;}
+h2.section-title.muted{opacity:.7;}
+p{margin:4px 0;}
+button{font-family:inherit;}
+.container{max-width:480px;margin:0 auto;padding:16px;}
+
+/* ---- Tab bar ---- */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;
+  height:calc(var(--tabbar-height) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+  background:var(--card-bg);
+  border-top:1px solid var(--border);
+  display:flex;
+  z-index:50;
+}
+.tabbar-btn{
+  flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:var(--text-muted);font-size:11px;cursor:pointer;padding:6px 0;
+}
+.tabbar-icon{font-size:20px;}
+.tabbar-btn.active{color:var(--primary);font-weight:600;}
+
+/* ---- Header ---- */
+.home-header{padding:8px 0 4px;}
+.home-date{color:var(--text-muted);font-size:13px;}
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;}
+.detail-header{display:flex;align-items:center;justify-content:space-between;padding:8px 0;}
+.detail-title-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.detail-sub{color:var(--text-muted);font-size:13px;margin-bottom:8px;}
+.goal-dot{width:14px;height:14px;border-radius:50%;flex:none;}
+
+/* ---- Buttons ---- */
+.btn{
+  border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  transition:transform .1s ease, opacity .15s ease;
+}
+.btn:active{transform:scale(0.97);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-secondary{background:#eef0f4;color:var(--text);}
+.btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary);}
+.btn-danger{background:#fff;color:var(--danger);border:1px solid var(--danger);}
+.btn-small{padding:6px 12px;font-size:13px;}
+.btn-tiny{padding:4px 10px;font-size:12px;background:#eef0f4;color:var(--text);border-radius:8px;margin-top:4px;}
+.full-width{width:100%;margin-bottom:10px;}
+.icon-btn{background:none;border:none;color:var(--primary);font-size:13px;cursor:pointer;padding:4px 6px;}
+.icon-btn-sm{background:none;border:none;color:var(--text-muted);font-size:14px;cursor:pointer;padding:2px 5px;}
+.back-btn{background:none;border:none;color:var(--primary);font-size:15px;cursor:pointer;padding:4px 0;}
+
+/* ---- Cards / Sections ---- */
+.life-goal-card{
+  background:var(--card-bg);border-radius:var(--radius);padding:14px;margin-bottom:14px;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.life-goal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.life-goal-title{font-size:16px;font-weight:700;flex:1 1 auto;min-width:0;}
+.lg-icon{margin-right:2px;}
+.lg-year{font-size:12px;color:var(--text-muted);font-weight:400;white-space:nowrap;}
+.lg-actions{display:flex;gap:4px;flex:none;white-space:nowrap;margin-left:auto;}
+.lg-desc{font-size:13px;color:var(--text-muted);}
+.subsection-header{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.subsection-header h3{font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+.empty-hint{color:var(--text-muted);font-size:13px;margin:4px 0;}
+
+.yearly-goal-item{padding:8px 0;border-top:1px solid var(--border);}
+.item-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.item-title{font-size:14px;font-weight:600;}
+.item-title-sm{font-size:13px;}
+.item-actions{display:flex;gap:2px;flex:none;}
+.monthly-goals{margin-top:6px;padding-left:8px;}
+.monthly-goal-item{padding:6px 0;}
+.habit-list-item{padding:8px 0;border-top:1px solid var(--border);cursor:pointer;}
+.freq-tag{color:var(--text-muted);font-size:11px;margin-left:4px;}
+.inactive-tag{color:var(--danger);font-size:11px;margin-left:4px;}
+
+.goal-group{margin-bottom:20px;}
+.goal-group-title{font-size:14px;font-weight:700;margin-bottom:8px;}
+.habit-list{display:flex;flex-direction:column;gap:10px;}
+.habit-card{
+  background:var(--card-bg);border-radius:var(--radius);padding:12px 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-left:5px solid #999;box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.habit-card.completed{opacity:.75;}
+.habit-card-main{flex:1;min-width:0;cursor:pointer;}
+.habit-card-title{font-size:15px;font-weight:600;}
+.habit-card-meta{display:flex;gap:8px;font-size:12px;color:var(--text-muted);margin-top:4px;flex-wrap:wrap;}
+.streak-badge{background:#fff3e0;color:#e65100;border-radius:8px;padding:1px 6px;font-weight:600;}
+
+.check-btn{
+  width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:#fff;
+  font-size:18px;color:#fff;cursor:pointer;flex:none;transition:transform .15s ease;
+}
+.check-btn:active{transform:scale(0.85);}
+.check-btn.checked{background:var(--primary);border-color:var(--primary);animation:pop .25s ease;}
+@keyframes pop{0%{transform:scale(0.6);}60%{transform:scale(1.15);}100%{transform:scale(1);}}
+.habit-value-input{display:flex;align-items:center;gap:4px;flex:none;}
+.value-input{width:58px;padding:6px;border:1px solid var(--border);border-radius:8px;font-size:14px;}
+.unit{font-size:12px;color:var(--text-muted);}
+
+.empty-state{text-align:center;padding:40px 16px;color:var(--text-muted);}
+.empty-state .btn{margin-top:12px;}
+
+/* ---- Stats / progress ---- */
+.stat-row{display:flex;gap:8px;margin:12px 0;}
+.stat-card{flex:1;background:var(--card-bg);border-radius:var(--radius);padding:12px 6px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.stat-value{font-size:18px;font-weight:700;}
+.stat-label{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.progress-bar-wrap{background:#eceef2;border-radius:8px;height:10px;overflow:hidden;margin-top:8px;}
+.progress-bar-wrap.sm{height:6px;}
+.progress-bar{height:100%;border-radius:8px;transition:width .3s ease;}
+.progress-caption{font-size:12px;color:var(--text-muted);}
+.progress-caption.sm{font-size:11px;}
+.progress-text{white-space:nowrap;}
+
+/* ---- Heatmap ---- */
+.heatmap-scroll{overflow-x:auto;padding-bottom:4px;}
+.heatmap-grid{
+  display:grid;grid-template-rows:repeat(7,12px);grid-auto-flow:column;grid-auto-columns:12px;gap:3px;
+  width:max-content;
+}
+.heat-cell{width:12px;height:12px;border-radius:3px;background:#eceef2;}
+.heat-cell.empty{background:transparent;}
+.heat-cell.filled{background:#4CAF50;}
+
+/* ---- History ---- */
+.history-list{display:flex;flex-direction:column;}
+.history-item{
+  display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--border);
+  font-size:13px;cursor:pointer;
+}
+.history-date{color:var(--text-muted);flex:none;width:120px;}
+.history-value{font-weight:600;}
+.history-memo{color:var(--text-muted);font-size:12px;}
+
+/* ---- Settings ---- */
+.settings-section{background:var(--card-bg);border-radius:var(--radius);padding:14px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.radio-row{display:flex;flex-direction:column;gap:8px;font-size:14px;}
+.file-btn{display:block;text-align:center;}
+.app-version{color:var(--text-muted);font-size:12px;text-align:center;}
+
+/* ---- Forms / Modal ---- */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;
+  z-index:100;padding:16px;
+}
+.modal-card{
+  background:#fff;border-radius:var(--radius);width:100%;max-width:420px;max-height:88vh;overflow-y:auto;
+  animation:modalIn .18s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;}
+.modal-header h2{font-size:16px;}
+.modal-close{background:none;border:none;font-size:16px;cursor:pointer;color:var(--text-muted);}
+.modal-body{padding:16px;}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+form label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:12px;font-weight:600;}
+form input[type=text],form input[type=number],form input[type=date],form input[type=month],form select,form textarea{
+  display:block;width:100%;margin-top:5px;padding:9px 10px;border:1px solid var(--border);border-radius:8px;
+  font-size:14px;color:var(--text);font-weight:400;background:#fff;
+}
+form textarea{resize:vertical;min-height:56px;}
+.checkbox-label{display:flex;align-items:center;gap:8px;font-weight:400;}
+.checkbox-label input{width:auto;margin:0;}
+.color-picker,.icon-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.color-swatch input,.icon-swatch input{position:absolute;opacity:0;width:0;height:0;}
+.color-swatch{position:relative;cursor:pointer;}
+.color-swatch span{display:block;width:30px;height:30px;border-radius:50%;border:2px solid transparent;}
+.color-swatch input:checked + span{border-color:#111;}
+.icon-swatch{position:relative;cursor:pointer;}
+.icon-swatch span{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:#f0f1f4;font-size:17px;border:2px solid transparent;}
+.icon-swatch input:checked + span{border-color:var(--primary);background:#eef0ff;}
+
+/* ---- Toast ---- */
+.toast{
+  position:fixed;left:50%;bottom:calc(var(--tabbar-height) + env(safe-area-inset-bottom) + 14px);
+  transform:translate(-50%,10px);background:#1c1e21;color:#fff;padding:9px 18px;border-radius:20px;
+  font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:200;
+}
+.toast.show{opacity:1;transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+
+<main id="app-content" class="container"></main>
+
+<nav class="tabbar">
+  <button class="tabbar-btn" data-tab="home" onclick="goTab('home')"><span class="tabbar-icon">🏠</span><span>ホーム</span></button>
+  <button class="tabbar-btn" data-tab="goals" onclick="goTab('goals')"><span class="tabbar-icon">🎯</span><span>目標</span></button>
+  <button class="tabbar-btn" data-tab="settings" onclick="goTab('settings')"><span class="tabbar-icon">⚙️</span><span>設定</span></button>
+</nav>
+
+<div id="modal-root"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+'use strict';
+
+/* =========================================================
+   Constants / Utilities
+   ========================================================= */
+const STORAGE_KEY = 'lifeGoalTracker_v1';
+const LIFE_GOAL_COLORS = ['#4CAF50','#2196F3','#FF9800','#E91E63','#9C27B0','#00BCD4','#795548','#607D8B'];
+const LIFE_GOAL_ICONS = ['🏃','📚','💰','🗣️','🎨','🧘','👨‍👩‍👧','💼','🌱','⛰️'];
+
+function esc(v){
+  if(v===null||v===undefined) return '';
+  return String(v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function uid(prefix){
+  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function dateStrOf(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function parseDate(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function addDays(s, n){ const d = parseDate(s); d.setDate(d.getDate()+n); return dateStrOf(d); }
+function toEpochDay(s){ return Math.floor(parseDate(s).getTime()/86400000); }
+function yearMonthOf(s){ return s.slice(0,7); }
+function weekdayOf(s){ return parseDate(s).getDay(); }
+function startOfWeek(s, weekStartsOn){
+  const wd = weekdayOf(s);
+  const offset = weekStartsOn==='monday' ? ((wd+6)%7) : wd;
+  return addDays(s, -offset);
+}
+function prevMonthKey(k){ let [y,m]=k.split('-').map(Number); m--; if(m===0){m=12;y--;} return `${y}-${pad2(m)}`; }
+function nextMonthKey(k){ let [y,m]=k.split('-').map(Number); m++; if(m===13){m=1;y++;} return `${y}-${pad2(m)}`; }
+function formatJP(s){
+  const d = parseDate(s);
+  const days = ['日','月','火','水','木','金','土'];
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})`;
+}
+function freqLabel(h){
+  if(h.frequencyType==='daily') return '毎日' + (h.trackValue ? `（${esc(h.unit)}記録）` : '');
+  if(h.frequencyType==='weekly') return `週${h.frequencyTarget}回`;
+  if(h.frequencyType==='monthly') return `月間累計 ${h.frequencyTarget}${esc(h.unit)}`;
+  return '';
+}
+
+/* =========================================================
+   State (localStorage)
+   ========================================================= */
+function defaultState(){
+  return {
+    lifeGoals: [], yearlyGoals: [], monthlyGoals: [], habits: [], habitLogs: [], tasks: [], reviews: [],
+    settings: { weekStartsOn: 'monday' }
+  };
+}
+function validateState(s){
+  if(!s || typeof s!=='object') return false;
+  const arrayFields = ['lifeGoals','yearlyGoals','monthlyGoals','habits','habitLogs','tasks','reviews'];
+  for(const f of arrayFields){ if(!Array.isArray(s[f])) return false; }
+  if(!s.settings || typeof s.settings!=='object') return false;
+  return true;
+}
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return defaultState();
+  try{
+    const parsed = JSON.parse(raw);
+    if(!validateState(parsed)) return defaultState();
+    return Object.assign(defaultState(), parsed);
+  }catch(e){
+    console.error('state load failed', e);
+    return defaultState();
+  }
+}
+function saveState(){
+  if(!validateState(state)){
+    alert('データの形式に問題があるため保存できませんでした。');
+    return;
+  }
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    alert('データの保存に失敗しました。ストレージの空き容量を確認してください。\n' + e.message);
+  }
+}
+
+let state = loadState();
+let ui = { tab: 'home', habitDetailId: null };
+
+/* =========================================================
+   Habit log helpers / streaks / progress
+   ========================================================= */
+function logCompleted(habit, log){
+  if(!log) return false;
+  if(habit.trackValue) return Number(log.value) > 0;
+  return !!log.done;
+}
+function habitCompletedOn(habit, dateStr){
+  const log = state.habitLogs.find(l => l.habitId===habit.id && l.date===dateStr);
+  return logCompleted(habit, log);
+}
+function getHabitLogMap(habitId){
+  const map = new Map();
+  for(const l of state.habitLogs){ if(l.habitId===habitId) map.set(l.date, l); }
+  return map;
+}
+function calcDailyCurrentStreak(habit){
+  const map = getHabitLogMap(habit.id);
+  let cursor = todayStr();
+  if(!logCompleted(habit, map.get(cursor))) cursor = addDays(cursor, -1);
+  let streak = 0;
+  while(logCompleted(habit, map.get(cursor))){ streak++; cursor = addDays(cursor, -1); }
+  return streak;
+}
+function calcDailyLongestStreak(habit){
+  const map = getHabitLogMap(habit.id);
+  const days = [];
+  for(const [date, log] of map){ if(logCompleted(habit, log)) days.push(toEpochDay(date)); }
+  days.sort((a,b)=>a-b);
+  let longest=0, cur=0, prev=null;
+  for(const d of days){
+    cur = (prev!==null && d===prev+1) ? cur+1 : 1;
+    longest = Math.max(longest, cur);
+    prev = d;
+  }
+  return longest;
+}
+function buildPeriodAggregates(habit, weekStartsOn){
+  const map = new Map();
+  for(const l of state.habitLogs){
+    if(l.habitId !== habit.id) continue;
+    if(!logCompleted(habit, l)) continue;
+    const pk = habit.frequencyType==='weekly' ? startOfWeek(l.date, weekStartsOn) : yearMonthOf(l.date);
+    const cur = map.get(pk) || { sum:0, count:0 };
+    cur.count++;
+    cur.sum += habit.trackValue ? Number(l.value||0) : 1;
+    map.set(pk, cur);
+  }
+  return map;
+}
+function periodMetFromAgg(habit, key, agg){
+  const a = agg.get(key) || { sum:0, count:0 };
+  return habit.frequencyType==='weekly' ? a.count >= habit.frequencyTarget : a.sum >= habit.frequencyTarget;
+}
+function calcPeriodicCurrentStreak(habit, weekStartsOn){
+  const agg = buildPeriodAggregates(habit, weekStartsOn);
+  const stepBack = habit.frequencyType==='weekly' ? (k)=>addDays(k,-7) : (k)=>prevMonthKey(k);
+  let key = habit.frequencyType==='weekly' ? startOfWeek(todayStr(), weekStartsOn) : yearMonthOf(todayStr());
+  if(!periodMetFromAgg(habit, key, agg)) key = stepBack(key);
+  let streak = 0;
+  while(periodMetFromAgg(habit, key, agg)){ streak++; key = stepBack(key); }
+  return streak;
+}
+function calcPeriodicLongestStreak(habit, weekStartsOn){
+  const agg = buildPeriodAggregates(habit, weekStartsOn);
+  if(agg.size===0) return 0;
+  const keys = Array.from(agg.keys()).sort();
+  const stepFwd = habit.frequencyType==='weekly' ? (k)=>addDays(k,7) : (k)=>nextMonthKey(k);
+  let cursor = keys[0];
+  const last = keys[keys.length-1];
+  let longest=0, cur=0, guard=0;
+  while(true){
+    if(periodMetFromAgg(habit, cursor, agg)){ cur++; longest = Math.max(longest, cur); } else { cur = 0; }
+    if(cursor === last) break;
+    cursor = stepFwd(cursor);
+    if(++guard > 5000) break;
+  }
+  return longest;
+}
+function calcCurrentStreak(habit, weekStartsOn){
+  return habit.frequencyType==='daily' ? calcDailyCurrentStreak(habit) : calcPeriodicCurrentStreak(habit, weekStartsOn);
+}
+function calcLongestStreak(habit, weekStartsOn){
+  return habit.frequencyType==='daily' ? calcDailyLongestStreak(habit) : calcPeriodicLongestStreak(habit, weekStartsOn);
+}
+function streakUnitLabel(habit){
+  return habit.frequencyType==='daily' ? '日' : habit.frequencyType==='weekly' ? '週' : 'ヶ月';
+}
+function currentPeriodProgress(habit, weekStartsOn){
+  if(habit.frequencyType==='daily'){
+    const weekStart = startOfWeek(todayStr(), weekStartsOn);
+    let doneDays=0, elapsed=0;
+    for(let i=0;i<7;i++){
+      const d = addDays(weekStart, i);
+      if(d > todayStr()) break;
+      elapsed++;
+      if(habitCompletedOn(habit, d)) doneDays++;
+    }
+    return { label:'今週', current:doneDays, target:elapsed, unitSuffix:'', rate: elapsed ? Math.round(doneDays/elapsed*100) : 0 };
+  }
+  const agg = buildPeriodAggregates(habit, weekStartsOn);
+  const key = habit.frequencyType==='weekly' ? startOfWeek(todayStr(), weekStartsOn) : yearMonthOf(todayStr());
+  const a = agg.get(key) || { sum:0, count:0 };
+  const current = habit.frequencyType==='weekly' ? a.count : a.sum;
+  const label = habit.frequencyType==='weekly' ? '今週' : '今月';
+  const unitSuffix = habit.frequencyType==='monthly' ? esc(habit.unit) : '';
+  return { label, current, target: habit.frequencyTarget, unitSuffix, rate: habit.frequencyTarget ? Math.round(current/habit.frequencyTarget*100) : 0 };
+}
+
+/* =========================================================
+   Toast / Modal
+   ========================================================= */
+let toastTimer = null;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove('show'), 2000);
+}
+function openModal(title, bodyHtml){
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+    <div class="modal-card">
+      <div class="modal-header"><h2>${esc(title)}</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">${bodyHtml}</div>
+    </div>
+  </div>`;
+}
+function closeModal(){
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+/* =========================================================
+   Navigation
+   ========================================================= */
+function goTab(tab){
+  ui.tab = tab;
+  ui.habitDetailId = null;
+  render();
+  window.scrollTo(0,0);
+}
+function openHabitDetail(id){
+  ui.habitDetailId = id;
+  render();
+  window.scrollTo(0,0);
+}
+function closeHabitDetail(){
+  ui.habitDetailId = null;
+  render();
+  window.scrollTo(0,0);
+}
+
+/* =========================================================
+   Render: root
+   ========================================================= */
+function render(){
+  document.getElementById('app-content').innerHTML = renderCurrentScreen();
+  document.querySelectorAll('.tabbar-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===ui.tab));
+}
+function renderCurrentScreen(){
+  if(ui.habitDetailId) return renderHabitDetail(ui.habitDetailId);
+  switch(ui.tab){
+    case 'home': return renderHome();
+    case 'goals': return renderGoals();
+    case 'settings': return renderSettings();
+    default: return renderHome();
+  }
+}
+
+/* =========================================================
+   Render: Home
+   ========================================================= */
+function renderHome(){
+  const activeHabits = state.habits.filter(h => h.active);
+  const weekStartsOn = state.settings.weekStartsOn;
+  let bodyHtml;
+  if(activeHabits.length === 0){
+    bodyHtml = `<div class="empty-state">
+      <p>まだ習慣が登録されていません。</p>
+      <button class="btn btn-primary" onclick="openHabitForm()">＋ 習慣を追加</button>
+    </div>`;
+  } else {
+    const byGoal = {};
+    for(const h of activeHabits){ (byGoal[h.lifeGoalId] = byGoal[h.lifeGoalId] || []).push(h); }
+    bodyHtml = Object.keys(byGoal).map(goalId => {
+      const goal = state.lifeGoals.find(g => g.id===goalId);
+      const cards = byGoal[goalId].map(h => renderHabitCard(h, weekStartsOn)).join('');
+      const title = goal ? `${esc(goal.icon)} ${esc(goal.title)}` : '未分類';
+      const color = goal ? esc(goal.color) : '#333';
+      return `<section class="goal-group">
+        <h3 class="goal-group-title" style="color:${color}">${title}</h3>
+        <div class="habit-list">${cards}</div>
+      </section>`;
+    }).join('');
+  }
+  return `
+    <header class="home-header">
+      <div class="home-date">${formatJP(todayStr())}</div>
+      <h1>今日の習慣</h1>
+    </header>
+    ${bodyHtml}
+  `;
+}
+function renderHabitCard(habit, weekStartsOn){
+  const log = state.habitLogs.find(l => l.habitId===habit.id && l.date===todayStr());
+  const completed = logCompleted(habit, log);
+  const streak = calcCurrentStreak(habit, weekStartsOn);
+  const unit = streakUnitLabel(habit);
+  const progress = currentPeriodProgress(habit, weekStartsOn);
+  const goal = state.lifeGoals.find(g => g.id===habit.lifeGoalId);
+  const color = goal ? goal.color : '#999';
+
+  let actionHtml;
+  if(habit.trackValue){
+    const val = (log && log.value!=null) ? log.value : '';
+    actionHtml = `<div class="habit-value-input">
+      <input type="number" step="0.1" inputmode="decimal" class="value-input" id="input-${habit.id}" value="${esc(val)}" placeholder="0">
+      <span class="unit">${esc(habit.unit)}</span>
+      <button class="btn btn-small btn-primary" onclick="submitHabitValue('${habit.id}')">記録</button>
+    </div>`;
+  } else {
+    actionHtml = `<button class="check-btn ${completed?'checked':''}" onclick="toggleHabitDone('${habit.id}')" aria-label="完了にする">${completed?'✔':''}</button>`;
+  }
+
+  return `<div class="habit-card ${completed?'completed':''}" style="border-left-color:${esc(color)}">
+    <div class="habit-card-main" onclick="openHabitDetail('${habit.id}')">
+      <div class="habit-card-title">${esc(habit.title)}</div>
+      <div class="habit-card-meta">
+        <span class="streak-badge">🔥${streak}${unit}</span>
+        <span class="progress-text">${progress.label} ${progress.current}${progress.unitSuffix}/${progress.target}${progress.unitSuffix}</span>
+      </div>
+    </div>
+    ${actionHtml}
+  </div>`;
+}
+function toggleHabitDone(habitId){
+  const date = todayStr();
+  let log = state.habitLogs.find(l => l.habitId===habitId && l.date===date);
+  if(log){ log.done = !log.done; }
+  else { log = { id: uid('hl'), habitId, date, done:true, value:null, memo:'' }; state.habitLogs.push(log); }
+  saveState();
+  render();
+  showToast(log.done ? '記録しました！' : '記録を取り消しました');
+}
+function submitHabitValue(habitId){
+  const input = document.getElementById('input-'+habitId);
+  const val = parseFloat(input.value);
+  if(isNaN(val) || val < 0){ alert('正しい数値を入力してください'); return; }
+  const date = todayStr();
+  let log = state.habitLogs.find(l => l.habitId===habitId && l.date===date);
+  if(log){ log.value = val; log.done = val > 0; }
+  else { log = { id: uid('hl'), habitId, date, done: val>0, value: val, memo:'' }; state.habitLogs.push(log); }
+  saveState();
+  render();
+  showToast('記録しました！');
+}
+
+/* =========================================================
+   Render: Goal tree
+   ========================================================= */
+function renderGoals(){
+  const activeGoals = state.lifeGoals.filter(g => !g.archived);
+  const archivedGoals = state.lifeGoals.filter(g => g.archived);
+  const addDisabled = activeGoals.length >= 5;
+  return `
+  <header class="page-header">
+    <h1>人生目標</h1>
+    <button class="btn btn-primary btn-small" onclick="openLifeGoalForm()" ${addDisabled?'disabled title="最大5個までです"':''}>＋ 追加</button>
+  </header>
+  ${activeGoals.length===0
+    ? `<div class="empty-state"><p>まだ人生目標がありません。</p><button class="btn btn-primary" onclick="openLifeGoalForm()">＋ 最初の目標を追加</button></div>`
+    : activeGoals.map(renderLifeGoalCard).join('')}
+  ${archivedGoals.length ? `<h2 class="section-title muted">アーカイブ済み</h2>${archivedGoals.map(renderLifeGoalCard).join('')}` : ''}
+  `;
+}
+function renderLifeGoalCard(goal){
+  const yearlyGoals = state.yearlyGoals.filter(y => y.lifeGoalId===goal.id);
+  const habits = state.habits.filter(h => h.lifeGoalId===goal.id);
+  return `<section class="life-goal-card" style="border-top:4px solid ${esc(goal.color)}">
+    <div class="life-goal-header">
+      <div class="life-goal-title"><span class="lg-icon">${esc(goal.icon)}</span>${esc(goal.title)} <span class="lg-year">〜${goal.targetYear}年</span></div>
+      <div class="lg-actions">
+        <button class="icon-btn" onclick="openLifeGoalForm('${goal.id}')">編集</button>
+        <button class="icon-btn" onclick="toggleArchiveLifeGoal('${goal.id}')">${goal.archived?'復元':'アーカイブ'}</button>
+      </div>
+    </div>
+    ${goal.description ? `<p class="lg-desc">${esc(goal.description)}</p>` : ''}
+    <div class="yearly-goals">
+      <div class="subsection-header"><h3>年間目標</h3><button class="btn btn-tiny" onclick="openYearlyGoalForm('${goal.id}')">＋ 追加</button></div>
+      ${yearlyGoals.length===0 ? `<p class="empty-hint">年間目標がありません</p>` : yearlyGoals.map(y => renderYearlyGoalItem(y, goal)).join('')}
+    </div>
+    <div class="habits-section">
+      <div class="subsection-header"><h3>習慣</h3><button class="btn btn-tiny" onclick="openHabitForm('${goal.id}')">＋ 追加</button></div>
+      ${habits.length===0 ? `<p class="empty-hint">習慣がありません</p>` : habits.map(renderHabitListItem).join('')}
+    </div>
+  </section>`;
+}
+function renderYearlyGoalItem(yg, lifeGoal){
+  const monthlyGoals = state.monthlyGoals.filter(m => m.yearlyGoalId===yg.id);
+  return `<div class="yearly-goal-item">
+    <div class="item-row">
+      <span class="item-title">${yg.year}年: ${esc(yg.title)}</span>
+      <span class="item-actions">
+        <button class="icon-btn-sm" onclick="openYearlyGoalForm('${lifeGoal.id}','${yg.id}')">✎</button>
+        <button class="icon-btn-sm" onclick="deleteYearlyGoal('${yg.id}')">🗑</button>
+      </span>
+    </div>
+    <div class="monthly-goals">
+      ${monthlyGoals.map(m => renderMonthlyGoalItem(m, lifeGoal)).join('')}
+      <button class="btn btn-tiny" onclick="openMonthlyGoalForm('${yg.id}')">＋ 月間目標を追加</button>
+    </div>
+  </div>`;
+}
+function renderMonthlyGoalItem(mg, lifeGoal){
+  const hasTarget = mg.targetValue!=null && mg.targetValue>0;
+  const rate = hasTarget ? Math.min(100, Math.round((mg.currentValue||0)/mg.targetValue*100)) : null;
+  return `<div class="monthly-goal-item">
+    <div class="item-row">
+      <span class="item-title-sm">${esc(mg.yearMonth)} ${esc(mg.title)}</span>
+      <span class="item-actions">
+        <button class="icon-btn-sm" onclick="openMonthlyGoalForm(null,'${mg.id}')">✎</button>
+        <button class="icon-btn-sm" onclick="deleteMonthlyGoal('${mg.id}')">🗑</button>
+      </span>
+    </div>
+    ${hasTarget ? `<div class="progress-bar-wrap sm"><div class="progress-bar" style="width:${rate}%;background:${esc(lifeGoal.color)}"></div></div><p class="progress-caption sm">${esc(mg.currentValue||0)}/${esc(mg.targetValue)} ${esc(mg.unit||'')}</p>` : ''}
+  </div>`;
+}
+function renderHabitListItem(h){
+  return `<div class="item-row habit-list-item" onclick="openHabitDetail('${h.id}')">
+    <span class="item-title-sm">${esc(h.title)} <span class="freq-tag">${freqLabel(h)}</span>${h.active?'':' <span class="inactive-tag">停止中</span>'}</span>
+    <span class="item-actions" onclick="event.stopPropagation()">
+      <button class="icon-btn-sm" onclick="openHabitForm(null,'${h.id}')">✎</button>
+      <button class="icon-btn-sm" onclick="toggleHabitActive('${h.id}')">${h.active?'停止':'再開'}</button>
+      <button class="icon-btn-sm" onclick="deleteHabit('${h.id}')">🗑</button>
+    </span>
+  </div>`;
+}
+
+/* =========================================================
+   Render: Habit detail
+   ========================================================= */
+function renderHabitDetail(habitId){
+  const habit = state.habits.find(h => h.id===habitId);
+  if(!habit){ ui.habitDetailId = null; return renderHome(); }
+  const goal = state.lifeGoals.find(g => g.id===habit.lifeGoalId);
+  const weekStartsOn = state.settings.weekStartsOn;
+  const curStreak = calcCurrentStreak(habit, weekStartsOn);
+  const longStreak = calcLongestStreak(habit, weekStartsOn);
+  const unit = streakUnitLabel(habit);
+  const progress = currentPeriodProgress(habit, weekStartsOn);
+  const color = goal ? goal.color : '#999';
+
+  return `
+  <header class="detail-header">
+    <button class="back-btn" onclick="closeHabitDetail()">← 戻る</button>
+    <button class="icon-btn" onclick="openHabitForm(null,'${habit.id}')">編集</button>
+  </header>
+  <div class="detail-title-row">
+    <span class="goal-dot" style="background:${esc(color)}"></span>
+    <h1>${esc(habit.title)}</h1>
+  </div>
+  <p class="detail-sub">${goal ? esc(goal.icon)+' '+esc(goal.title) : '未分類'} ・ ${freqLabel(habit)}</p>
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-value">🔥${curStreak}</div><div class="stat-label">現在の${unit}ストリーク</div></div>
+    <div class="stat-card"><div class="stat-value">🏆${longStreak}</div><div class="stat-label">最長${unit}ストリーク</div></div>
+    <div class="stat-card"><div class="stat-value">${progress.rate}%</div><div class="stat-label">${progress.label}の達成率</div></div>
+  </div>
+  ${habit.frequencyType!=='daily' ? `
+  <div class="progress-bar-wrap"><div class="progress-bar" style="width:${Math.min(100,progress.rate)}%;background:${esc(color)}"></div></div>
+  <p class="progress-caption">${progress.current}${progress.unitSuffix} / ${progress.target}${progress.unitSuffix}</p>` : ''}
+  <h2 class="section-title">記録カレンダー(直近3ヶ月)</h2>
+  ${renderHeatmap(habit)}
+  <h2 class="section-title">記録の追加・修正</h2>
+  <button class="btn btn-secondary" onclick="openHabitLogForm('${habit.id}')">＋ 過去の記録を追加・修正</button>
+  <h2 class="section-title">記録履歴</h2>
+  ${renderHabitHistory(habit)}
+  `;
+}
+function renderHeatmap(habit){
+  const end = todayStr();
+  const start = addDays(end, -89);
+  const weekStartsOn = state.settings.weekStartsOn;
+  let cursor = startOfWeek(start, weekStartsOn);
+  const cells = [];
+  while(cursor <= end){ cells.push(cursor); cursor = addDays(cursor, 1); }
+  while(cells.length % 7 !== 0){ cells.push(addDays(cells[cells.length-1], 1)); }
+  const goal = state.lifeGoals.find(g => g.id===habit.lifeGoalId);
+  const color = goal ? goal.color : '#4CAF50';
+  const map = getHabitLogMap(habit.id);
+  const cellsHtml = cells.map(d => {
+    if(d > end) return `<div class="heat-cell empty"></div>`;
+    const log = map.get(d);
+    const completed = logCompleted(habit, log);
+    let title = d;
+    if(log){ title += habit.trackValue ? ` ${log.value}${habit.unit}` : (log.done ? ' 完了' : ' 未達成'); }
+    const style = completed ? `background:${esc(color)}` : '';
+    return `<div class="heat-cell ${completed?'filled':''}" style="${style}" title="${esc(title)}"></div>`;
+  }).join('');
+  return `<div class="heatmap-scroll"><div class="heatmap-grid">${cellsHtml}</div></div>`;
+}
+function renderHabitHistory(habit){
+  const logs = state.habitLogs.filter(l => l.habitId===habit.id).sort((a,b)=> a.date<b.date?1:-1).slice(0,60);
+  if(logs.length===0) return `<p class="empty-hint">まだ記録がありません。</p>`;
+  return `<div class="history-list">${logs.map(l => {
+    const completed = logCompleted(habit, l);
+    const valueText = completed ? (habit.trackValue ? `${esc(l.value)} ${esc(habit.unit)}` : '✔ 完了') : '未達成';
+    return `<div class="history-item" onclick="openHabitLogForm('${habit.id}','${l.date}')">
+      <span class="history-date">${formatJP(l.date)}</span>
+      <span class="history-value">${valueText}</span>
+      ${l.memo ? `<span class="history-memo">${esc(l.memo)}</span>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* =========================================================
+   Render: Settings
+   ========================================================= */
+function renderSettings(){
+  return `
+  <header class="page-header"><h1>設定</h1></header>
+  <section class="settings-section">
+    <h3>週の開始曜日</h3>
+    <div class="radio-row">
+      <label><input type="radio" name="weekStartsOn" value="monday" ${state.settings.weekStartsOn==='monday'?'checked':''} onchange="setWeekStart('monday')"> 月曜始まり</label>
+      <label><input type="radio" name="weekStartsOn" value="sunday" ${state.settings.weekStartsOn==='sunday'?'checked':''} onchange="setWeekStart('sunday')"> 日曜始まり</label>
+    </div>
+  </section>
+  <section class="settings-section">
+    <h3>データ管理</h3>
+    <button class="btn btn-secondary full-width" onclick="handleExport()">📤 データをエクスポート</button>
+    <label class="btn btn-secondary full-width file-btn">📥 データをインポート
+      <input type="file" accept="application/json" style="display:none" onchange="handleImportFile(this.files[0])">
+    </label>
+    <button class="btn btn-outline full-width" onclick="handleLoadSampleData()">🧪 サンプルデータを入れる</button>
+  </section>
+  <section class="settings-section">
+    <p class="app-version">Life Goal Tracker v1.0</p>
+  </section>
+  `;
+}
+function setWeekStart(v){
+  state.settings.weekStartsOn = v;
+  saveState();
+  showToast('保存しました');
+}
+
+/* =========================================================
+   Forms: Life goal
+   ========================================================= */
+function openLifeGoalForm(id){
+  const editing = id ? state.lifeGoals.find(g => g.id===id) : null;
+  if(!editing && state.lifeGoals.filter(g => !g.archived).length >= 5){
+    alert('人生目標は最大5個までです。');
+    return;
+  }
+  const curYear = new Date().getFullYear();
+  const selColor = editing ? editing.color : LIFE_GOAL_COLORS[0];
+  const selIcon = editing ? editing.icon : LIFE_GOAL_ICONS[0];
+  const body = `<form id="lifeGoalForm">
+    <label>タイトル<input type="text" name="title" required maxlength="40" value="${esc(editing?editing.title:'')}"></label>
+    <label>説明<textarea name="description" maxlength="200">${esc(editing?editing.description||'':'')}</textarea></label>
+    <label>目標年<input type="number" name="targetYear" min="${curYear}" max="2100" value="${editing?editing.targetYear:curYear+3}"></label>
+    <label>カラー</label>
+    <div class="color-picker">${LIFE_GOAL_COLORS.map(c => `<label class="color-swatch"><input type="radio" name="color" value="${c}" ${selColor===c?'checked':''}><span style="background:${c}"></span></label>`).join('')}</div>
+    <label>アイコン</label>
+    <div class="icon-picker">${LIFE_GOAL_ICONS.map(ic => `<label class="icon-swatch"><input type="radio" name="icon" value="${ic}" ${selIcon===ic?'checked':''}><span>${ic}</span></label>`).join('')}</div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </div>
+  </form>`;
+  openModal(editing?'人生目標を編集':'人生目標を追加', body);
+  document.getElementById('lifeGoalForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const title = fd.get('title').trim();
+    if(!title){ alert('タイトルを入力してください'); return; }
+    const targetYear = Number(fd.get('targetYear')) || curYear+3;
+    const color = fd.get('color') || LIFE_GOAL_COLORS[0];
+    const icon = fd.get('icon') || LIFE_GOAL_ICONS[0];
+    const description = fd.get('description').trim();
+    if(editing){
+      editing.title = title; editing.description = description; editing.targetYear = targetYear;
+      editing.color = color; editing.icon = icon;
+    } else {
+      state.lifeGoals.push({ id: uid('lg'), title, description, color, icon, targetYear, createdAt: todayStr(), archived:false });
+    }
+    saveState(); closeModal(); render();
+    showToast('保存しました');
+  });
+}
+function toggleArchiveLifeGoal(id){
+  const g = state.lifeGoals.find(x => x.id===id);
+  if(!g) return;
+  if(!g.archived){
+    if(!confirm(`「${g.title}」をアーカイブしますか？関連する年間目標・月間目標・習慣は削除されず残ります。`)) return;
+  }
+  g.archived = !g.archived;
+  saveState(); render();
+}
+
+/* =========================================================
+   Forms: Yearly goal
+   ========================================================= */
+function openYearlyGoalForm(lifeGoalId, id){
+  const editing = id ? state.yearlyGoals.find(y => y.id===id) : null;
+  const lgId = editing ? editing.lifeGoalId : lifeGoalId;
+  if(!editing){
+    const count = state.yearlyGoals.filter(y => y.lifeGoalId===lgId).length;
+    if(count >= 3 && !confirm('年間目標は通常1〜3個が推奨です。追加しますか？')) return;
+  }
+  const curYear = new Date().getFullYear();
+  const body = `<form id="yearlyGoalForm">
+    <label>年<input type="number" name="year" required value="${editing?editing.year:curYear}" min="${curYear-1}" max="${curYear+10}"></label>
+    <label>タイトル<input type="text" name="title" required maxlength="60" value="${esc(editing?editing.title:'')}"></label>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </div>
+  </form>`;
+  openModal(editing?'年間目標を編集':'年間目標を追加', body);
+  document.getElementById('yearlyGoalForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const title = fd.get('title').trim();
+    if(!title){ alert('タイトルを入力してください'); return; }
+    const year = Number(fd.get('year')) || curYear;
+    if(editing){ editing.title = title; editing.year = year; }
+    else { state.yearlyGoals.push({ id: uid('yg'), lifeGoalId: lgId, year, title }); }
+    saveState(); closeModal(); render();
+    showToast('保存しました');
+  });
+}
+function deleteYearlyGoal(id){
+  if(!confirm('この年間目標を削除しますか？関連する月間目標も削除されます。')) return;
+  const monthlyIds = state.monthlyGoals.filter(m => m.yearlyGoalId===id).map(m => m.id);
+  state.monthlyGoals = state.monthlyGoals.filter(m => m.yearlyGoalId !== id);
+  state.tasks = state.tasks.filter(t => !monthlyIds.includes(t.monthlyGoalId));
+  state.yearlyGoals = state.yearlyGoals.filter(y => y.id !== id);
+  saveState(); render();
+}
+
+/* =========================================================
+   Forms: Monthly goal
+   ========================================================= */
+function openMonthlyGoalForm(yearlyGoalId, id){
+  const editing = id ? state.monthlyGoals.find(m => m.id===id) : null;
+  const ygId = editing ? editing.yearlyGoalId : yearlyGoalId;
+  const body = `<form id="monthlyGoalForm">
+    <label>対象月<input type="month" name="yearMonth" required value="${esc(editing?editing.yearMonth:yearMonthOf(todayStr()))}"></label>
+    <label>タイトル<input type="text" name="title" required maxlength="60" value="${esc(editing?editing.title:'')}"></label>
+    <label>目標数値(任意)<input type="number" step="0.1" name="targetValue" value="${editing&&editing.targetValue!=null?editing.targetValue:''}"></label>
+    <label>単位<input type="text" name="unit" maxlength="10" value="${esc(editing?editing.unit||'':'')}"></label>
+    ${editing ? `<label>現在の実績値<input type="number" step="0.1" name="currentValue" value="${editing.currentValue||0}"></label>` : ''}
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </div>
+  </form>`;
+  openModal(editing?'月間目標を編集':'月間目標を追加', body);
+  document.getElementById('monthlyGoalForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const title = fd.get('title').trim();
+    if(!title){ alert('タイトルを入力してください'); return; }
+    const targetValueRaw = fd.get('targetValue');
+    const targetValue = targetValueRaw ? Number(targetValueRaw) : null;
+    const unit = fd.get('unit').trim();
+    const yearMonth = fd.get('yearMonth');
+    if(editing){
+      editing.title = title; editing.yearMonth = yearMonth; editing.targetValue = targetValue; editing.unit = unit;
+      const cv = fd.get('currentValue');
+      if(cv !== null) editing.currentValue = Number(cv) || 0;
+    } else {
+      state.monthlyGoals.push({ id: uid('mg'), yearlyGoalId: ygId, yearMonth, title, targetValue, unit, currentValue: 0 });
+    }
+    saveState(); closeModal(); render();
+    showToast('保存しました');
+  });
+}
+function deleteMonthlyGoal(id){
+  if(!confirm('この月間目標を削除しますか？')) return;
+  state.tasks = state.tasks.filter(t => t.monthlyGoalId !== id);
+  state.monthlyGoals = state.monthlyGoals.filter(m => m.id !== id);
+  saveState(); render();
+}
+
+/* =========================================================
+   Forms: Habit
+   ========================================================= */
+function openHabitForm(lifeGoalId, id){
+  const editing = id ? state.habits.find(h => h.id===id) : null;
+  const activeLifeGoals = state.lifeGoals.filter(g => !g.archived);
+  if(activeLifeGoals.length === 0){ alert('先に人生目標を追加してください。'); return; }
+  const selectedGoalId = editing ? editing.lifeGoalId : (lifeGoalId || activeLifeGoals[0].id);
+  const freqType = editing ? editing.frequencyType : 'weekly';
+  const body = `<form id="habitForm">
+    <label>タイトル<input type="text" name="title" required maxlength="40" value="${esc(editing?editing.title:'')}"></label>
+    <label>紐づく人生目標
+      <select name="lifeGoalId">${activeLifeGoals.map(g => `<option value="${g.id}" ${g.id===selectedGoalId?'selected':''}>${esc(g.icon)} ${esc(g.title)}</option>`).join('')}</select>
+    </label>
+    <label>頻度タイプ
+      <select name="frequencyType">
+        <option value="daily" ${freqType==='daily'?'selected':''}>毎日</option>
+        <option value="weekly" ${freqType==='weekly'?'selected':''}>週N回</option>
+        <option value="monthly" ${freqType==='monthly'?'selected':''}>月間累計値</option>
+      </select>
+    </label>
+    <label>目標回数/値(週N回・月間累計の場合)<input type="number" step="0.1" name="frequencyTarget" value="${editing?editing.frequencyTarget:4}"></label>
+    <label class="checkbox-label"><input type="checkbox" name="trackValue" ${editing?(editing.trackValue?'checked':''):''}> 数値を記録する(距離・時間など)</label>
+    <label>単位(数値記録の場合)<input type="text" name="unit" maxlength="10" value="${esc(editing?editing.unit||'':'')}"></label>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </div>
+  </form>`;
+  openModal(editing?'習慣を編集':'習慣を追加', body);
+  document.getElementById('habitForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const title = fd.get('title').trim();
+    if(!title){ alert('タイトルを入力してください'); return; }
+    const data = {
+      lifeGoalId: fd.get('lifeGoalId'),
+      title,
+      frequencyType: fd.get('frequencyType'),
+      frequencyTarget: Number(fd.get('frequencyTarget')) || 1,
+      trackValue: fd.get('trackValue') === 'on',
+      unit: fd.get('unit').trim(),
+    };
+    if(editing){ Object.assign(editing, data); }
+    else { state.habits.push({ id: uid('h'), ...data, active:true }); }
+    saveState(); closeModal(); render();
+    showToast('保存しました');
+  });
+}
+function toggleHabitActive(id){
+  const h = state.habits.find(x => x.id===id);
+  if(!h) return;
+  h.active = !h.active;
+  saveState(); render();
+}
+function deleteHabit(id){
+  if(!confirm('この習慣を削除しますか？記録履歴もすべて削除されます。')) return;
+  state.habitLogs = state.habitLogs.filter(l => l.habitId !== id);
+  state.habits = state.habits.filter(h => h.id !== id);
+  saveState(); render();
+}
+
+/* =========================================================
+   Forms: Habit log (past-date correction)
+   ========================================================= */
+function openHabitLogForm(habitId, date){
+  const habit = state.habits.find(h => h.id===habitId);
+  if(!habit) return;
+  const existing = date ? state.habitLogs.find(l => l.habitId===habitId && l.date===date) : null;
+  const body = `<form id="habitLogForm">
+    <label>日付<input type="date" name="date" required value="${esc(date||todayStr())}" max="${todayStr()}"></label>
+    ${habit.trackValue
+      ? `<label>記録値(${esc(habit.unit)})<input type="number" step="0.1" name="value" value="${existing&&existing.value!=null?existing.value:''}"></label>`
+      : `<label class="checkbox-label"><input type="checkbox" name="done" ${existing&&existing.done?'checked':''}> 達成した</label>`}
+    <label>メモ<input type="text" name="memo" maxlength="100" value="${esc(existing?existing.memo||'':'')}"></label>
+    <div class="modal-actions">
+      ${existing ? `<button type="button" class="btn btn-danger" onclick="deleteHabitLog('${existing.id}')">削除</button>` : ''}
+      <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button type="submit" class="btn btn-primary">保存</button>
+    </div>
+  </form>`;
+  openModal('記録を編集', body);
+  document.getElementById('habitLogForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const d = fd.get('date');
+    if(d > todayStr()){ alert('未来の日付は記録できません'); return; }
+    let log = state.habitLogs.find(l => l.habitId===habitId && l.date===d);
+    const value = habit.trackValue ? (Number(fd.get('value')) || 0) : null;
+    const done = habit.trackValue ? value > 0 : fd.get('done') === 'on';
+    const memo = fd.get('memo').trim();
+    if(log){ log.value = value; log.done = done; log.memo = memo; log.date = d; }
+    else { state.habitLogs.push({ id: uid('hl'), habitId, date: d, done, value, memo }); }
+    saveState(); closeModal(); render();
+    showToast('保存しました');
+  });
+}
+function deleteHabitLog(logId){
+  if(!confirm('この記録を削除しますか？')) return;
+  state.habitLogs = state.habitLogs.filter(l => l.id !== logId);
+  saveState(); closeModal(); render();
+}
+
+/* =========================================================
+   Export / Import / Sample data
+   ========================================================= */
+function handleExport(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `life-goal-tracker_${todayStr().replace(/-/g,'')}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('エクスポートしました');
+}
+function handleImportFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    let parsed;
+    try{ parsed = JSON.parse(e.target.result); }
+    catch(err){ alert('ファイルの読み込みに失敗しました: ' + err.message); return; }
+    if(!validateState(parsed)){ alert('ファイルの形式が正しくありません。'); return; }
+    if(!confirm('現在のデータを上書きしてインポートします。よろしいですか？')) return;
+    state = Object.assign(defaultState(), parsed);
+    saveState(); render(); goTab('home');
+    showToast('インポートしました');
+  };
+  reader.readAsText(file, 'utf-8');
+}
+function generateSampleData(){
+  const today = todayStr();
+  const lg1 = { id: uid('lg'), title:'健康な体を維持する', description:'一生自分の足で歩けるように', color:'#4CAF50', icon:'🏃', targetYear:2030, createdAt: today, archived:false };
+  const lg2 = { id: uid('lg'), title:'英語を自在に使いこなす', description:'海外の同僚と自由に話せるように', color:'#2196F3', icon:'🗣️', targetYear:2028, createdAt: today, archived:false };
+  const yg1 = { id: uid('yg'), lifeGoalId: lg1.id, year:2026, title:'年間1200km走る' };
+  const yg2 = { id: uid('yg'), lifeGoalId: lg2.id, year:2026, title:'TOEIC900点を取る' };
+  const ym = yearMonthOf(today);
+  const mg1 = { id: uid('mg'), yearlyGoalId: yg1.id, yearMonth: ym, title:'月100km走る', targetValue:100, unit:'km', currentValue:0 };
+  const mg2 = { id: uid('mg'), yearlyGoalId: yg2.id, yearMonth: ym, title:'英会話20時間', targetValue:20, unit:'時間', currentValue:8 };
+  const h1 = { id: uid('h'), lifeGoalId: lg1.id, title:'ランニング', frequencyType:'weekly', frequencyTarget:4, trackValue:true, unit:'km', active:true };
+  const h2 = { id: uid('h'), lifeGoalId: lg2.id, title:'英会話レッスン', frequencyType:'weekly', frequencyTarget:3, trackValue:false, unit:'', active:true };
+  const h3 = { id: uid('h'), lifeGoalId: lg2.id, title:'英語の読書', frequencyType:'daily', frequencyTarget:1, trackValue:true, unit:'ページ', active:true };
+  const logs = [];
+  let mg1Sum = 0;
+  for(let i=13;i>=0;i--){
+    const date = addDays(today, -i);
+    const wd = weekdayOf(date);
+    if([0,1,3,5].includes(wd)){
+      const val = Math.round((5+Math.random()*6)*10)/10;
+      logs.push({ id: uid('hl'), habitId: h1.id, date, done:true, value: val, memo:'' });
+      if(yearMonthOf(date)===ym) mg1Sum += val;
+    }
+    if([2,4,6].includes(wd)){
+      logs.push({ id: uid('hl'), habitId: h2.id, date, done:true, value:null, memo:'' });
+    }
+    if(i!==10 && i!==4){
+      const val = Math.round(5+Math.random()*15);
+      logs.push({ id: uid('hl'), habitId: h3.id, date, done:true, value: val, memo:'' });
+    }
+  }
+  mg1.currentValue = Math.round(mg1Sum*10)/10;
+  return {
+    lifeGoals:[lg1,lg2], yearlyGoals:[yg1,yg2], monthlyGoals:[mg1,mg2],
+    habits:[h1,h2,h3], habitLogs: logs, tasks:[], reviews:[], settings:{ weekStartsOn:'monday' }
+  };
+}
+function handleLoadSampleData(){
+  const hasData = state.lifeGoals.length > 0 || state.habits.length > 0;
+  const msg = hasData ? '既存のデータをすべて削除してサンプルデータを入れます。よろしいですか？' : 'サンプルデータを入れますか？';
+  if(!confirm(msg)) return;
+  state = generateSampleData();
+  saveState(); render(); goTab('home');
+  showToast('サンプルデータを入れました');
+}
+
+/* =========================================================
+   Init
+   ========================================================= */
+render();
+</script>
+</body>
+</html>
+
