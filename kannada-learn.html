@@ -689,9 +689,19 @@ function getDailyPlan() {
     if (unlearned.length >= settings.newCount) {
       picked = shuffle(unlearned).slice(0, settings.newCount);
     } else {
-      // 全フレーズ割り当て済み → スコアが低い順に選び直し
-      const sorted = [...PHRASES].sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
-      picked = sorted.slice(0, settings.newCount);
+      // 全フレーズ割り当て済み → スコアが低い順に選び直し（昨日と被らないよう除外）
+      const yesterdayIds = new Set(daily[yesterday] || []);
+      const sorted = [...PHRASES]
+        .filter(p => !yesterdayIds.has(p.id))
+        .sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
+      // 昨日除外後に足りなければ昨日分も補充
+      if (sorted.length >= settings.newCount) {
+        picked = sorted.slice(0, settings.newCount);
+      } else {
+        const rest = [...PHRASES].filter(p => yesterdayIds.has(p.id))
+          .sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
+        picked = [...sorted, ...rest].slice(0, settings.newCount);
+      }
     }
     daily[today] = picked.map(p => p.id);
     saveDaily();
@@ -1029,7 +1039,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260702-011';
+const APP_VERSION = '20260702-012';
 
 async function checkForUpdate() {
   try {
