@@ -214,6 +214,62 @@ form textarea{resize:vertical;min-height:56px;}
   font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:200;
 }
 .toast.show{opacity:1;transform:translate(-50%,0);}
+
+/* ---- Onboarding ---- */
+.onboarding-overlay{
+  position:fixed;inset:0;background:var(--bg);z-index:300;
+  display:flex;flex-direction:column;padding:env(safe-area-inset-top) 20px calc(env(safe-area-inset-bottom) + 20px);
+  overflow-y:auto;
+}
+.onboarding-skip{align-self:flex-end;background:none;border:none;color:var(--text-muted);font-size:13px;padding:12px 0;cursor:pointer;}
+.onboarding-body{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:440px;margin:0 auto;width:100%;}
+.onboarding-emoji{font-size:52px;text-align:center;margin-bottom:20px;}
+.onboarding-title{font-size:21px;font-weight:700;text-align:center;margin-bottom:12px;}
+.onboarding-text{font-size:14px;color:var(--text-muted);text-align:center;line-height:1.7;}
+.onboarding-flow{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:24px 0;}
+.onboarding-flow-item{background:#fff;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.onboarding-flow-arrow{color:var(--text-muted);font-size:14px;}
+.onboarding-example{background:#fff;border-radius:var(--radius);padding:16px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.onboarding-example-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);}
+.onboarding-example-row:last-child{border-bottom:none;}
+.onboarding-choice{display:flex;flex-direction:column;gap:10px;margin-top:24px;max-width:440px;margin-left:auto;margin-right:auto;width:100%;}
+.onboarding-dots{display:flex;justify-content:center;gap:6px;padding:16px 0 4px;}
+.onboarding-dot{width:7px;height:7px;border-radius:50%;background:var(--border);}
+.onboarding-dot.active{background:var(--primary);width:18px;border-radius:4px;}
+.onboarding-nav{display:flex;justify-content:space-between;gap:10px;max-width:440px;margin:0 auto;width:100%;padding-top:4px;}
+
+/* ---- Step guide (empty states) ---- */
+.step-guide{display:flex;flex-direction:column;gap:10px;margin:16px 0 20px;}
+.step-guide-item{display:flex;align-items:center;gap:12px;background:var(--card-bg);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.step-guide-item.done{opacity:.55;}
+.step-guide-num{
+  width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex:none;
+}
+.step-guide-item.done .step-guide-num{background:#9ca3af;}
+.step-guide-text{font-size:14px;flex:1;}
+.step-guide-text small{display:block;color:var(--text-muted);font-size:12px;font-weight:400;margin-top:2px;}
+
+/* ---- Habit templates ---- */
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.template-card{
+  background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:left;cursor:pointer;
+}
+.template-card-icon{font-size:22px;}
+.template-card-title{font-size:13px;font-weight:600;margin-top:6px;}
+.template-card-meta{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.template-custom-btn{width:100%;text-align:center;}
+
+/* ---- Help ---- */
+.help-btn{
+  background:#eef0f4;border:none;color:var(--text-muted);font-size:12px;font-weight:700;width:20px;height:20px;
+  border-radius:50%;cursor:pointer;flex:none;line-height:1;vertical-align:middle;margin-left:4px;
+}
+.help-body{font-size:13px;line-height:1.7;}
+.help-body dt{font-weight:700;margin-top:10px;}
+.help-body dt:first-child{margin-top:0;}
+.help-body dd{margin:2px 0 0;color:var(--text-muted);}
+.label-with-help{display:flex;align-items:center;}
 </style>
 </head>
 <body>
@@ -227,6 +283,7 @@ form textarea{resize:vertical;min-height:56px;}
 </nav>
 
 <div id="modal-root"></div>
+<div id="onboarding-root"></div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -282,7 +339,7 @@ function freqLabel(h){
 function defaultState(){
   return {
     lifeGoals: [], yearlyGoals: [], monthlyGoals: [], habits: [], habitLogs: [], tasks: [], reviews: [],
-    settings: { weekStartsOn: 'monday' }
+    settings: { weekStartsOn: 'monday', onboardingCompleted: false }
   };
 }
 function validateState(s){
@@ -298,7 +355,9 @@ function loadState(){
   try{
     const parsed = JSON.parse(raw);
     if(!validateState(parsed)) return defaultState();
-    return Object.assign(defaultState(), parsed);
+    const merged = Object.assign(defaultState(), parsed);
+    merged.settings = Object.assign(defaultState().settings, parsed.settings);
+    return merged;
   }catch(e){
     console.error('state load failed', e);
     return defaultState();
@@ -474,6 +533,126 @@ function closeHabitDetail(){
 }
 
 /* =========================================================
+   Onboarding
+   ========================================================= */
+const ONBOARDING_STEPS = 3;
+let onboardingStep = 0;
+
+function maybeShowOnboarding(){
+  if(!state.settings.onboardingCompleted) showOnboarding();
+}
+function showOnboarding(){
+  onboardingStep = 0;
+  renderOnboarding();
+}
+function renderOnboarding(){
+  const root = document.getElementById('onboarding-root');
+  if(onboardingStep >= ONBOARDING_STEPS){
+    root.innerHTML = '';
+    return;
+  }
+  root.innerHTML = `<div class="onboarding-overlay">
+    <button class="onboarding-skip" onclick="finishOnboarding()">スキップ</button>
+    <div class="onboarding-body">${renderOnboardingSlide(onboardingStep)}</div>
+    <div class="onboarding-dots">${Array.from({length:ONBOARDING_STEPS}).map((_,i)=>`<span class="onboarding-dot ${i===onboardingStep?'active':''}"></span>`).join('')}</div>
+    ${onboardingStep < ONBOARDING_STEPS-1 ? `
+    <div class="onboarding-nav">
+      <button class="btn btn-secondary" style="visibility:${onboardingStep===0?'hidden':'visible'}" onclick="onboardingStep--;renderOnboarding()">戻る</button>
+      <button class="btn btn-primary" onclick="onboardingStep++;renderOnboarding()">次へ</button>
+    </div>` : ''}
+  </div>`;
+}
+function renderOnboardingSlide(step){
+  if(step===0){
+    return `
+    <div class="onboarding-emoji">🎯</div>
+    <div class="onboarding-title">今日の行動を、人生の目標につなげる</div>
+    <p class="onboarding-text">Life Goal Trackerは、大きな人生目標を年間→月間→日々の習慣に分解して、「今日やっていることが何に繋がっているか」を見えるようにするツールです。</p>
+    <div class="onboarding-flow">
+      <span class="onboarding-flow-item">人生目標</span><span class="onboarding-flow-arrow">→</span>
+      <span class="onboarding-flow-item">年間目標</span><span class="onboarding-flow-arrow">→</span>
+      <span class="onboarding-flow-item">月間目標</span><span class="onboarding-flow-arrow">→</span>
+      <span class="onboarding-flow-item">毎日の習慣</span>
+    </div>
+    <div class="onboarding-example">
+      <div class="onboarding-example-row"><span>🏃 健康な体を維持する</span><span></span></div>
+      <div class="onboarding-example-row"><span>└ 年間1200km走る</span><span></span></div>
+      <div class="onboarding-example-row"><span>&nbsp;&nbsp;└ 今月100km走る</span><span></span></div>
+      <div class="onboarding-example-row"><span>&nbsp;&nbsp;&nbsp;&nbsp;└ 週4回ランニング</span><span>🔥今日も1回</span></div>
+    </div>`;
+  }
+  if(step===1){
+    return `
+    <div class="onboarding-emoji">🔥</div>
+    <div class="onboarding-title">続けることが、なにより大事</div>
+    <p class="onboarding-text">完璧を目指して挫折するより、ゆるく長く続く方が価値があります。このアプリは達成率よりも「ストリーク(継続日数)」を主役として扱います。</p>
+    <div class="onboarding-example">
+      <div class="onboarding-example-row"><span>今週の達成率</span><span>70%</span></div>
+      <div class="onboarding-example-row"><span>現在のストリーク</span><span>🔥 継続中</span></div>
+    </div>
+    <p class="onboarding-text" style="margin-top:12px;">達成率70%でも、続いていればそれは勝ちです。</p>`;
+  }
+  return `
+    <div class="onboarding-emoji">🚀</div>
+    <div class="onboarding-title">はじめましょう</div>
+    <p class="onboarding-text">まずはサンプルデータで使い勝手を試すか、自分の目標を作るところから始められます。あとから設定画面でいつでもやり直せます。</p>
+    <div class="onboarding-choice">
+      <button class="btn btn-primary full-width" onclick="onboardingStartWithSample()">🧪 サンプルデータで試す</button>
+      <button class="btn btn-secondary full-width" onclick="onboardingStartFresh()">✏️ 自分で目標を作る</button>
+    </div>`;
+}
+function finishOnboarding(){
+  state.settings.onboardingCompleted = true;
+  saveState();
+  onboardingStep = ONBOARDING_STEPS;
+  renderOnboarding();
+}
+function onboardingStartWithSample(){
+  finishOnboarding();
+  handleLoadSampleData();
+}
+function onboardingStartFresh(){
+  finishOnboarding();
+  goTab('goals');
+  openLifeGoalForm();
+}
+
+/* =========================================================
+   Habit templates
+   ========================================================= */
+const HABIT_TEMPLATES = [
+  { icon:'🏃', title:'ランニング', frequencyType:'weekly', frequencyTarget:4, trackValue:true, unit:'km' },
+  { icon:'📖', title:'読書', frequencyType:'daily', frequencyTarget:1, trackValue:true, unit:'ページ' },
+  { icon:'🧘', title:'瞑想', frequencyType:'daily', frequencyTarget:1, trackValue:false, unit:'' },
+  { icon:'🌅', title:'早起き', frequencyType:'daily', frequencyTarget:1, trackValue:false, unit:'' },
+  { icon:'🗣️', title:'語学学習', frequencyType:'weekly', frequencyTarget:5, trackValue:true, unit:'分' },
+  { icon:'💪', title:'筋トレ', frequencyType:'weekly', frequencyTarget:3, trackValue:false, unit:'' },
+  { icon:'💧', title:'水分補給', frequencyType:'daily', frequencyTarget:1, trackValue:true, unit:'L' },
+  { icon:'✍️', title:'日記', frequencyType:'daily', frequencyTarget:1, trackValue:false, unit:'' },
+];
+function templateFreqSummary(t){
+  if(t.frequencyType==='daily') return '毎日';
+  if(t.frequencyType==='weekly') return `週${t.frequencyTarget}回`;
+  return `月間累計${t.frequencyTarget}${t.unit}`;
+}
+
+/* =========================================================
+   Help popovers
+   ========================================================= */
+function showHelp(title, bodyHtml){
+  openModal(title, `<div class="help-body">${bodyHtml}</div><div class="modal-actions"><button type="button" class="btn btn-primary" onclick="closeModal()">わかった</button></div>`);
+}
+function showFrequencyHelp(){
+  showHelp('頻度タイプについて', `
+    <dl>
+      <dt>毎日</dt><dd>毎日行いたい習慣。読書や瞑想、早起きなど。</dd>
+      <dt>週N回</dt><dd>1週間のうち何回か行えればよい習慣。「週4回ランニング」のように、曜日を決めずに好きな日に行えます。</dd>
+      <dt>月間累計値</dt><dd>1ヶ月の合計値で管理する習慣。「月100km走る」のように、日々の記録を積み上げて目標に近づけます。</dd>
+    </dl>
+  `);
+}
+
+/* =========================================================
    Render: root
    ========================================================= */
 function render(){
@@ -495,12 +674,29 @@ function renderCurrentScreen(){
    ========================================================= */
 function renderHome(){
   const activeHabits = state.habits.filter(h => h.active);
+  const hasLifeGoals = state.lifeGoals.some(g => !g.archived);
   const weekStartsOn = state.settings.weekStartsOn;
   let bodyHtml;
   if(activeHabits.length === 0){
-    bodyHtml = `<div class="empty-state">
-      <p>まだ習慣が登録されていません。</p>
-      <button class="btn btn-primary" onclick="openHabitForm()">＋ 習慣を追加</button>
+    bodyHtml = `
+    <div class="step-guide">
+      <div class="step-guide-item ${hasLifeGoals?'done':''}">
+        <span class="step-guide-num">${hasLifeGoals?'✓':'1'}</span>
+        <span class="step-guide-text">人生目標を作る<small>健康・お金・キャリアなど、大きな方向性を決める</small></span>
+      </div>
+      <div class="step-guide-item">
+        <span class="step-guide-num">2</span>
+        <span class="step-guide-text">習慣を追加する<small>毎日/週N回/月間累計から頻度を選ぶ</small></span>
+      </div>
+      <div class="step-guide-item">
+        <span class="step-guide-num">3</span>
+        <span class="step-guide-text">毎日チェックする<small>続けることが何より大事</small></span>
+      </div>
+    </div>
+    <div class="empty-state">
+      ${hasLifeGoals
+        ? `<button class="btn btn-primary" onclick="openHabitTemplatePicker()">＋ 習慣を追加</button>`
+        : `<p>まずは人生目標を作りましょう。</p><button class="btn btn-primary" onclick="goTab('goals')">🎯 目標を作りに行く</button>`}
     </div>`;
   } else {
     const byGoal = {};
@@ -591,7 +787,10 @@ function renderGoals(){
     <button class="btn btn-primary btn-small" onclick="openLifeGoalForm()" ${addDisabled?'disabled title="最大5個までです"':''}>＋ 追加</button>
   </header>
   ${activeGoals.length===0
-    ? `<div class="empty-state"><p>まだ人生目標がありません。</p><button class="btn btn-primary" onclick="openLifeGoalForm()">＋ 最初の目標を追加</button></div>`
+    ? `<div class="empty-state">
+        <p>まだ人生目標がありません。「健康」「お金」「キャリア」のような、人生で大事にしたい大きなテーマを1つ決めるところから始めましょう。</p>
+        <button class="btn btn-primary" onclick="openLifeGoalForm()">＋ 最初の目標を追加</button>
+      </div>`
     : activeGoals.map(renderLifeGoalCard).join('')}
   ${archivedGoals.length ? `<h2 class="section-title muted">アーカイブ済み</h2>${archivedGoals.map(renderLifeGoalCard).join('')}` : ''}
   `;
@@ -613,7 +812,7 @@ function renderLifeGoalCard(goal){
       ${yearlyGoals.length===0 ? `<p class="empty-hint">年間目標がありません</p>` : yearlyGoals.map(y => renderYearlyGoalItem(y, goal)).join('')}
     </div>
     <div class="habits-section">
-      <div class="subsection-header"><h3>習慣</h3><button class="btn btn-tiny" onclick="openHabitForm('${goal.id}')">＋ 追加</button></div>
+      <div class="subsection-header"><h3>習慣</h3><button class="btn btn-tiny" onclick="openHabitTemplatePicker('${goal.id}')">＋ 追加</button></div>
       ${habits.length===0 ? `<p class="empty-hint">習慣がありません</p>` : habits.map(renderHabitListItem).join('')}
     </div>
   </section>`;
@@ -755,6 +954,10 @@ function renderSettings(){
       <input type="file" accept="application/json" style="display:none" onchange="handleImportFile(this.files[0])">
     </label>
     <button class="btn btn-outline full-width" onclick="handleLoadSampleData()">🧪 サンプルデータを入れる</button>
+  </section>
+  <section class="settings-section">
+    <h3>ヘルプ</h3>
+    <button class="btn btn-secondary full-width" onclick="showOnboarding()">📘 使い方を見る</button>
   </section>
   <section class="settings-section">
     <p class="app-version">Life Goal Tracker v1.0</p>
@@ -911,27 +1114,46 @@ function deleteMonthlyGoal(id){
 /* =========================================================
    Forms: Habit
    ========================================================= */
-function openHabitForm(lifeGoalId, id){
+function openHabitTemplatePicker(lifeGoalId){
+  const activeLifeGoals = state.lifeGoals.filter(g => !g.archived);
+  if(activeLifeGoals.length === 0){ alert('先に人生目標を追加してください。'); return; }
+  const body = `
+    <p class="empty-hint" style="margin-bottom:10px;">よくある習慣から選ぶか、自分で作成できます。</p>
+    <div class="template-grid">
+      ${HABIT_TEMPLATES.map((t,i) => `
+        <button type="button" class="template-card" onclick="openHabitForm('${lifeGoalId||''}', null, ${i})">
+          <div class="template-card-icon">${t.icon}</div>
+          <div class="template-card-title">${esc(t.title)}</div>
+          <div class="template-card-meta">${templateFreqSummary(t)}</div>
+        </button>`).join('')}
+    </div>
+    <button type="button" class="btn btn-secondary template-custom-btn" onclick="openHabitForm('${lifeGoalId||''}')">✏️ カスタムで作成</button>
+  `;
+  openModal('習慣を追加', body);
+}
+function openHabitForm(lifeGoalId, id, templateIndex){
   const editing = id ? state.habits.find(h => h.id===id) : null;
+  const template = (templateIndex!=null) ? HABIT_TEMPLATES[templateIndex] : null;
   const activeLifeGoals = state.lifeGoals.filter(g => !g.archived);
   if(activeLifeGoals.length === 0){ alert('先に人生目標を追加してください。'); return; }
   const selectedGoalId = editing ? editing.lifeGoalId : (lifeGoalId || activeLifeGoals[0].id);
-  const freqType = editing ? editing.frequencyType : 'weekly';
+  const freqType = editing ? editing.frequencyType : (template ? template.frequencyType : 'weekly');
   const body = `<form id="habitForm">
-    <label>タイトル<input type="text" name="title" required maxlength="40" value="${esc(editing?editing.title:'')}"></label>
+    <label>タイトル<input type="text" name="title" required maxlength="40" value="${esc(editing?editing.title:(template?template.title:''))}"></label>
     <label>紐づく人生目標
       <select name="lifeGoalId">${activeLifeGoals.map(g => `<option value="${g.id}" ${g.id===selectedGoalId?'selected':''}>${esc(g.icon)} ${esc(g.title)}</option>`).join('')}</select>
     </label>
-    <label>頻度タイプ
+    <label class="label-with-help">頻度タイプ<button type="button" class="help-btn" onclick="showFrequencyHelp()">?</button></label>
+    <label>
       <select name="frequencyType">
         <option value="daily" ${freqType==='daily'?'selected':''}>毎日</option>
         <option value="weekly" ${freqType==='weekly'?'selected':''}>週N回</option>
         <option value="monthly" ${freqType==='monthly'?'selected':''}>月間累計値</option>
       </select>
     </label>
-    <label>目標回数/値(週N回・月間累計の場合)<input type="number" step="0.1" name="frequencyTarget" value="${editing?editing.frequencyTarget:4}"></label>
-    <label class="checkbox-label"><input type="checkbox" name="trackValue" ${editing?(editing.trackValue?'checked':''):''}> 数値を記録する(距離・時間など)</label>
-    <label>単位(数値記録の場合)<input type="text" name="unit" maxlength="10" value="${esc(editing?editing.unit||'':'')}"></label>
+    <label>目標回数/値(週N回・月間累計の場合)<input type="number" step="0.1" name="frequencyTarget" value="${editing?editing.frequencyTarget:(template?template.frequencyTarget:4)}"></label>
+    <label class="checkbox-label"><input type="checkbox" name="trackValue" ${(editing?editing.trackValue:(template?template.trackValue:false))?'checked':''}> 数値を記録する(距離・時間など)</label>
+    <label>単位(数値記録の場合)<input type="text" name="unit" maxlength="10" value="${esc(editing?editing.unit||'':(template?template.unit:''))}"></label>
     <div class="modal-actions">
       <button type="button" class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
       <button type="submit" class="btn btn-primary">保存</button>
@@ -1088,6 +1310,7 @@ function handleLoadSampleData(){
    Init
    ========================================================= */
 render();
+maybeShowOnboarding();
 </script>
 </body>
 </html>
