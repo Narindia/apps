@@ -79,7 +79,11 @@ export function HomeView({ patients, history, onNewEntry, onViewEntry, onHistory
             color: 'white',
             marginBottom: 8,
           }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🏥</div>
+            <img
+              src={`${import.meta.env.BASE_URL}icon-192.png`}
+              alt="症状カード"
+              style={{ width: 72, height: 72, borderRadius: 16, marginBottom: 12, display: 'block' }}
+            />
             <h2 style={{ margin: '0 0 8px 0', fontSize: 20 }}>症状カード作成</h2>
             <p style={{ margin: '0 0 16px 0', fontSize: 14, opacity: 0.85, lineHeight: 1.6 }}>
               患者を選択して症状を入力するだけで、医師に見せる英語の症状カードを即座に生成します。

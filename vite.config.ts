@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: '症状カード / Symptom Card',
         short_name: '症状カード',
