@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ame Nowcast — あと何分で雨？</title>
+<meta name="description" content="現在地の雨を15分単位で予測するナウキャストアプリ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EE;
+    --ink:#1A1714;
+    --monsoon:#2E4A62;
+    --rain:#4F7FA6;
+    --marigold:#E8A13D;
+    --akane:#C4452F;
+    --hairline:rgba(26,23,20,.18);
+    --muted:rgba(26,23,20,.55);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100dvh;
+  }
+  /* ── 背景の雨アニメーション ── */
+  #rainBg{
+    position:fixed;inset:0;width:100%;height:100%;
+    pointer-events:none;z-index:0;
+  }
+  .wrap{
+    position:relative;z-index:1;
+    max-width:560px;margin:0 auto;
+    padding:max(16px,env(safe-area-inset-top)) 20px max(32px,env(safe-area-inset-bottom));
+  }
+  .serif{font-family:'Bodoni Moda',serif}
+
+  header{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:6px;
+  }
+  header h1{font-family:'Bodoni Moda',serif;font-size:22px;font-weight:700;letter-spacing:.02em}
+  header .loc{font-size:12px;color:var(--muted);text-align:right;max-width:55%}
+
+  .verdict{padding:34px 0 22px;text-align:center;opacity:0;transform:translateY(6px);transition:opacity .6s ease,transform .6s ease}
+  .verdict.show{opacity:1;transform:none}
+  .verdict .eyebrow{font-size:12px;letter-spacing:.22em;color:var(--muted);margin-bottom:10px}
+  .verdict .main{font-family:'Bodoni Moda',serif;font-weight:700;line-height:1.05}
+  .verdict .num{font-size:clamp(64px,22vw,110px)}
+  .verdict .unit{font-size:clamp(22px,7vw,34px);margin-left:4px}
+  .verdict .word{font-size:clamp(34px,11vw,54px)}
+  .verdict .sub{font-size:14px;color:var(--muted);margin-top:12px;line-height:1.7}
+  .verdict.rain .main{color:var(--monsoon)}
+  .verdict.now  .main{color:var(--akane)}
+  .verdict.dry  .main{color:var(--marigold)}
+
+  section{margin-top:26px}
+  .sec-label{font-size:11px;letter-spacing:.2em;color:var(--muted);border-top:1px solid var(--hairline);padding-top:10px;margin-bottom:14px}
+  .cloudline{position:relative;border-top:2px solid var(--monsoon);display:flex;align-items:flex-start;height:120px}
+  .bin{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+  .drop{width:58%;max-width:22px;background:var(--rain);border-radius:0 0 6px 6px;min-height:0;transition:height .5s ease}
+  .drop.heavy{background:var(--akane)}
+  .drop.none{height:2px!important;background:var(--hairline);border-radius:0}
+  .bin .t{position:absolute;top:104px;font-size:10px;color:var(--muted);white-space:nowrap}
+  .bin .mm{position:absolute;top:-20px;font-size:10px;color:var(--monsoon);font-weight:700}
+  .legend{font-size:11px;color:var(--muted);margin-top:34px;line-height:1.7}
+
+  .hours{display:flex;gap:6px}
+  .hcard{flex:1;border:1px solid var(--hairline);border-radius:8px;padding:8px 2px;text-align:center;background:rgba(250,246,238,.7)}
+  .hcard .hh{font-size:10px;color:var(--muted)}
+  .hcard .pp{font-family:'Bodoni Moda',serif;font-size:18px;font-weight:700;margin-top:2px}
+  .hcard.hi{background:var(--monsoon);border-color:var(--monsoon)}
+  .hcard.hi .pp,.hcard.hi .hh{color:var(--paper)}
+
+  .actions{margin-top:30px;display:flex;gap:10px}
+  button{
+    font-family:inherit;font-size:14px;font-weight:700;
+    padding:13px 18px;border-radius:999px;border:2px solid var(--ink);
+    background:var(--ink);color:var(--paper);flex:1;cursor:pointer;
+  }
+  button.ghost{background:transparent;color:var(--ink)}
+  button:active{transform:scale(.98)}
+  button:focus-visible{outline:3px solid var(--marigold);outline-offset:2px}
+  .meta{font-size:11px;color:var(--muted);margin-top:14px;text-align:center;line-height:1.8}
+
+  .state{padding:48px 0;text-align:center;color:var(--muted);font-size:14px;line-height:2}
+  .state .big{font-family:'Bodoni Moda',serif;font-size:26px;color:var(--ink);font-weight:700;margin-bottom:8px}
+  .searchbox{display:flex;gap:8px;margin-top:16px}
+  .searchbox input{flex:1;padding:12px;border:1px solid var(--hairline);border-radius:8px;font-family:inherit;font-size:15px;background:#fff}
+  .quick{margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .chip{font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);flex:0 0 auto;cursor:pointer}
+  .note{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.8}
+  .hidden{display:none}
+
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important}
+    .verdict{opacity:1;transform:none}
+    #rainBg{display:none}
+  }
+</style>
+</head>
+<body>
+<canvas id="rainBg" aria-hidden="true"></canvas>
+
+<div class="wrap">
+<header>
+  <h1>Ame Nowcast</h1>
+  <div class="loc" id="locName">場所を確認中…</div>
+</header>
+
+<div class="state" id="stateBox">
+  <div class="big">☂</div>
+  <div id="stateMsg">現在地を取得しています…</div>
+  <div class="searchbox" id="searchBox">
+    <input type="text" id="cityInput" placeholder="都市名で検索（例: Hebbal）" enterkeyhint="search">
+    <button id="cityBtn" style="flex:0 0 auto">検索</button>
+  </div>
+  <div class="quick">
+    <button class="chip" data-lat="13.0450" data-lon="77.5950" data-name="Hebbal, Bengaluru">📍 Hebbal</button>
+    <button class="chip" data-lat="12.9716" data-lon="77.5946" data-name="Bengaluru中心部">📍 Bengaluru中心</button>
+    <button class="chip" data-lat="35.6053" data-lon="139.7130" data-name="荏原中延, 東京">📍 荏原中延</button>
+  </div>
+  <div class="note" id="stateNote"></div>
+</div>
+
+<main id="app" class="hidden">
+  <div class="verdict" id="verdict">
+    <div class="eyebrow" id="vEyebrow"></div>
+    <div class="main" id="vMain"></div>
+    <div class="sub" id="vSub"></div>
+  </div>
+
+  <section>
+    <div class="sec-label">今後3時間（15分ごとの雨量）</div>
+    <div class="cloudline" id="timeline"></div>
+    <div class="legend">雲の線から下がるバーが雨。<span style="color:var(--rain)">■</span> 雨 ／ <span style="color:var(--akane)">■</span> 強い雨（1mm/15分以上）</div>
+  </section>
+
+  <section>
+    <div class="sec-label">今後6時間の降水確率</div>
+    <div class="hours" id="hours"></div>
+  </section>
+
+  <div class="actions">
+    <button id="refreshBtn">🔄 更新する</button>
+    <button class="ghost" id="relocBtn">📍 現在地を再取得</button>
+  </div>
+  <div class="meta" id="metaInfo"></div>
+</main>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  let coords=null, timer=null;
+
+  /* ═══════════ 背景の雨アニメーション ═══════════ */
+  const canvas=$('rainBg'), ctx=canvas.getContext('2d');
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let drops=[], targetCount=25, raf=null;
+
+  function resize(){
+    canvas.width=innerWidth*devicePixelRatio;
+    canvas.height=innerHeight*devicePixelRatio;
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  }
+  addEventListener('resize',resize); resize();
+
+  function newDrop(randY){
+    return {
+      x:Math.random()*(innerWidth+100)-50,
+      y:randY?Math.random()*innerHeight:-30,
+      len:10+Math.random()*18,
+      speed:7+Math.random()*8,
+      drift:1.2+Math.random()*1.2,
+      alpha:.08+Math.random()*.14
+    };
+  }
+  function setRainIntensity(level){
+    // level: 0=雨なし(かすかな環境雨) / 1=雨接近 / 2=降雨中
+    targetCount = level===2 ? 140 : level===1 ? 70 : 25;
+  }
+  function tick(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    while(drops.length<targetCount) drops.push(newDrop(drops.length<30));
+    if(drops.length>targetCount) drops.length=targetCount;
+    ctx.lineWidth=1.1;
+    ctx.lineCap='round';
+    for(const d of drops){
+      ctx.strokeStyle='rgba(79,127,166,'+d.alpha+')';
+      ctx.beginPath();
+      ctx.moveTo(d.x,d.y);
+      ctx.lineTo(d.x-d.drift*2,d.y+d.len);
+      ctx.stroke();
+      d.x-=d.drift; d.y+=d.speed;
+      if(d.y>innerHeight+30){ Object.assign(d,newDrop(false)); }
+    }
+    raf=requestAnimationFrame(tick);
+  }
+  if(!reduced){
+    tick();
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden){cancelAnimationFrame(raf);raf=null;}
+      else if(!raf){tick();}
+    });
+  }
+
+  /* ═══════════ 位置情報 ═══════════ */
+  init();
+  function init(){
+    const cached=localStorage.getItem('ame_loc');
+    if(cached){ coords=JSON.parse(cached); load(); }
+    locate(!cached);
+  }
+
+  function locate(showState){
+    if(showState) setState('現在地を取得しています…（許可ダイアログが出たら「許可」を押してください）');
+    if(!navigator.geolocation||!window.isSecureContext){ geoFail('unsupported'); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos=>{
+        coords={lat:pos.coords.latitude, lon:pos.coords.longitude, name:null};
+        localStorage.setItem('ame_loc',JSON.stringify(coords));
+        load();
+      },
+      err=>geoFail(err&&err.code===1?'denied':'error'),
+      {enableHighAccuracy:false, timeout:10000, maximumAge:300000}
+    );
+  }
+
+  function geoFail(reason){
+    if(coords){ return; } // すでにキャッシュ位置で表示中なら継続
+    const msg = reason==='denied'
+      ? '位置情報の利用が許可されていません。下から場所を選ぶか、iPhoneの「設定 > プライバシー > 位置情報サービス > Safari」を確認してください。'
+      : 'この環境では現在地を取得できませんでした。下から場所を選んでください。';
+    setState(msg);
+    $('stateNote').textContent='※ Claudeのプレビュー画面では位置情報がブロックされます。GitHub Pagesで開けばGPSが使えます。';
+  }
+
+  function setState(msg){
+    $('stateBox').classList.remove('hidden');
+    $('app').classList.add('hidden');
+    $('stateMsg').textContent=msg;
+  }
+
+  // クイック選択チップ
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      coords={lat:parseFloat(c.dataset.lat), lon:parseFloat(c.dataset.lon), name:c.dataset.name};
+      localStorage.setItem('ame_loc',JSON.stringify(coords));
+      load();
+    });
+  });
+
+  // 都市名検索
+  $('cityBtn').addEventListener('click',searchCity);
+  $('cityInput').addEventListener('keydown',e=>{if(e.key==='Enter')searchCity();});
+  async function searchCity(){
+    const q=$('cityInput').value.trim();
+    if(!q)return;
+    try{
+      const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=1&language=ja');
+      const d=await r.json();
+      if(!d.results||!d.results.length){ $('stateMsg').textContent='「'+q+'」は見つかりませんでした。英語表記でも試してください。'; return; }
+      const g=d.results[0];
+      coords={lat:g.latitude, lon:g.longitude, name:[g.name,g.admin1].filter(Boolean).join(', ')};
+      localStorage.setItem('ame_loc',JSON.stringify(coords));
+      load();
+    }catch(e){ $('stateMsg').textContent='検索に失敗しました。通信環境をご確認ください。'; }
+  }
+
+  /* ═══════════ 予報データ ═══════════ */
+  async function load(){
+    try{
+      const url='https://api.open-meteo.com/v1/forecast?latitude='+coords.lat+'&longitude='+coords.lon
+        +'&minutely_15=precipitation&forecast_minutely_15=48'
+        +'&hourly=precipitation_probability,precipitation&forecast_hours=8'
+        +'&timezone=auto&timeformat=unixtime';
+      const r=await fetch(url);
+      if(!r.ok) throw new Error('api');
+      const d=await r.json();
+      render(d);
+      showLocName();
+    }catch(e){
+      setState('予報データの取得に失敗しました。少し待ってから再度お試しください。');
+    }
+  }
+
+  async function showLocName(){
+    if(coords.name){ $('locName').textContent='📍 '+coords.name; return; }
+    try{
+      const r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+coords.lat+'&longitude='+coords.lon+'&localityLanguage=ja');
+      const d=await r.json();
+      const name=[d.locality||d.city, d.principalSubdivision].filter(Boolean).join(', ');
+      $('locName').textContent='📍 '+(name||coords.lat.toFixed(3)+', '+coords.lon.toFixed(3));
+    }catch(e){
+      $('locName').textContent='📍 '+coords.lat.toFixed(3)+', '+coords.lon.toFixed(3);
+    }
+  }
+
+  /* ═══════════ 描画 ═══════════ */
+  function render(d){
+    const now=Date.now()/1000;
+    const times=d.minutely_15.time, prec=d.minutely_15.precipitation;
+
+    const bins=[];
+    for(let i=0;i<times.length;i++){
+      if(times[i]+900>now) bins.push({t:times[i], mm:prec[i]!=null?prec[i]:0});
+      if(bins.length>=12) break;
+    }
+
+    const TH=0.1;
+    let firstRain=-1;
+    for(let i=0;i<bins.length;i++){ if(bins[i].mm>=TH){ firstRain=i; break; } }
+
+    const v=$('verdict');
+    v.className='verdict';
+    if(firstRain===0){
+      v.classList.add('now'); setRainIntensity(2);
+      $('vEyebrow').textContent='NOW';
+      $('vMain').innerHTML='<span class="word">今、雨</span>';
+      $('vSub').textContent='この15分間で約 '+bins[0].mm.toFixed(1)+'mm の予測です。';
+    }else if(firstRain>0){
+      const mins=Math.max(1,Math.round((bins[firstRain].t-now)/60));
+      v.classList.add('rain'); setRainIntensity(1);
+      $('vEyebrow').textContent='RAIN INCOMING';
+      $('vMain').innerHTML='<span class="serif">あと</span><span class="num">'+mins+'</span><span class="unit">分で雨</span>';
+      $('vSub').textContent=fmtTime(bins[firstRain].t,d.utc_offset_seconds)+' 頃から降り出す見込み（±15分の幅あり）';
+    }else{
+      v.classList.add('dry'); setRainIntensity(0);
+      $('vEyebrow').textContent='CLEAR';
+      $('vMain').innerHTML='<span class="word">向こう3時間<br>雨なし</span>';
+      $('vSub').textContent='15分単位の予測では降水は見込まれていません。';
+    }
+    requestAnimationFrame(()=>v.classList.add('show'));
+
+    const tl=$('timeline'); tl.innerHTML='';
+    const maxmm=Math.max(1,...bins.map(b=>b.mm));
+    bins.forEach((b,i)=>{
+      const bin=document.createElement('div');bin.className='bin';
+      const drop=document.createElement('div');drop.className='drop';
+      const h=b.mm>=TH?Math.max(10,Math.round(b.mm/maxmm*90)):0;
+      if(b.mm>=1)drop.classList.add('heavy');
+      if(b.mm<TH)drop.classList.add('none');
+      drop.style.height=h+'px';
+      bin.appendChild(drop);
+      if(b.mm>=TH){const mm=document.createElement('div');mm.className='mm';mm.textContent=b.mm.toFixed(1);bin.appendChild(mm);}
+      if(i%2===0){const t=document.createElement('div');t.className='t';t.textContent=fmtTime(b.t,d.utc_offset_seconds);bin.appendChild(t);}
+      tl.appendChild(bin);
+    });
+
+    const hh=$('hours'); hh.innerHTML='';
+    const ht=d.hourly.time, hp=d.hourly.precipitation_probability;
+    let shown=0;
+    for(let i=0;i<ht.length&&shown<6;i++){
+      if(ht[i]+3600<now)continue;
+      const c=document.createElement('div');c.className='hcard';
+      const p=hp[i]!=null?hp[i]:0;
+      if(p>=60)c.classList.add('hi');
+      c.innerHTML='<div class="hh">'+fmtTime(ht[i],d.utc_offset_seconds,true)+'</div><div class="pp">'+p+'<span style="font-size:11px">%</span></div>';
+      hh.appendChild(c);shown++;
+    }
+
+    $('metaInfo').innerHTML='更新: '+new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})+' ／ データ: Open-Meteo（15分解像度）<br>※インドではレーダー実況ではなく気象モデルによる予測のため、実際の降り出しと±15〜30分ずれることがあります。';
+
+    $('stateBox').classList.add('hidden');
+    $('app').classList.remove('hidden');
+
+    clearInterval(timer);
+    timer=setInterval(load, 10*60*1000);
+  }
+
+  function fmtTime(epoch, offset, hourOnly){
+    const dt=new Date((epoch+offset)*1000);
+    const h=dt.getUTCHours(), m=dt.getUTCMinutes();
+    return hourOnly?h+'時':String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  }
+
+  $('refreshBtn').addEventListener('click',load);
+  $('relocBtn').addEventListener('click',()=>{coords=null;localStorage.removeItem('ame_loc');locate(true);});
+})();
+</script>
+</body>
+</html>
