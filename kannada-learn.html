@@ -684,20 +684,20 @@ function getDailyPlan() {
   const today = todayStr();
   const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
 
-  // 今日の新規フレーズ（まだなければ設定値の語数で割り当て）
-  if (!daily[today] || daily[today].length === 0) {
+  // 今日の新規フレーズを決定（昨日と被っていたら自動再抽選）
+  const yesterdayIds = new Set(daily[yesterday] || []);
+  const todayOverlaps = (daily[today] || []).some(id => yesterdayIds.has(id));
+  if (!daily[today] || daily[today].length === 0 || todayOverlaps) {
     const usedIds = new Set(Object.values(daily).flat());
     const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
     let picked;
     if (unlearned.length >= settings.newCount) {
       picked = shuffle(unlearned).slice(0, settings.newCount);
     } else {
-      // 全フレーズ割り当て済み → スコアが低い順に選び直し（昨日と被らないよう除外）
-      const yesterdayIds = new Set(daily[yesterday] || []);
+      // 全フレーズ割り当て済み → スコアが低い順・昨日除外で選び直し
       const sorted = [...PHRASES]
         .filter(p => !yesterdayIds.has(p.id))
         .sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
-      // 昨日除外後に足りなければ昨日分も補充
       if (sorted.length >= settings.newCount) {
         picked = sorted.slice(0, settings.newCount);
       } else {
@@ -1042,7 +1042,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260702-013';
+const APP_VERSION = '20260702-014';
 
 async function checkForUpdate() {
   try {
