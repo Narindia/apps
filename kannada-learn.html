@@ -684,24 +684,33 @@ function getDailyPlan() {
   const today = todayStr();
   const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
 
-  // 今日の新規フレーズを決定（昨日と被っていたら自動再抽選）
-  const yesterdayIds = new Set(daily[yesterday] || []);
-  const todayOverlaps = (daily[today] || []).some(id => yesterdayIds.has(id));
+  // 直近7日分のIDを除外リストとして作成
+  const recentIds = new Set();
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(Date.now() - 86400000 * i).toISOString().slice(0, 10);
+    (daily[d] || []).forEach(id => recentIds.add(id));
+  }
+
+  // 今日の新規フレーズを決定（未設定 or 直近と被っていたら再抽選）
+  const todayOverlaps = (daily[today] || []).some(id => recentIds.has(id));
   if (!daily[today] || daily[today].length === 0 || todayOverlaps) {
     const usedIds = new Set(Object.values(daily).flat());
     const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
     let picked;
     if (unlearned.length >= settings.newCount) {
-      picked = shuffle(unlearned).slice(0, settings.newCount);
+      // まだ未割当フレーズがある → 直近除外しつつ新規から
+      const fresh = unlearned.filter(p => !recentIds.has(p.id));
+      picked = shuffle(fresh.length >= settings.newCount ? fresh : unlearned).slice(0, settings.newCount);
     } else {
-      // 全フレーズ割り当て済み → スコアが低い順・昨日除外で選び直し
+      // 全フレーズ割り当て済み → スコアが低い順・直近除外で選び直し
       const sorted = [...PHRASES]
-        .filter(p => !yesterdayIds.has(p.id))
+        .filter(p => !recentIds.has(p.id))
         .sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
       if (sorted.length >= settings.newCount) {
         picked = sorted.slice(0, settings.newCount);
       } else {
-        const rest = [...PHRASES].filter(p => yesterdayIds.has(p.id))
+        // 除外後に足りなければ直近分もスコア順で補充
+        const rest = [...PHRASES].filter(p => recentIds.has(p.id))
           .sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
         picked = [...sorted, ...rest].slice(0, settings.newCount);
       }
@@ -1042,7 +1051,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260702-014';
+const APP_VERSION = '20260702-015';
 
 async function checkForUpdate() {
   try {
