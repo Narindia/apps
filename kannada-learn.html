@@ -732,7 +732,7 @@ function getDailyPlan() {
 function phrasePreviews(ids) {
   return ids.map(id => {
     const p = PHRASES.find(ph => ph.id === id);
-    return p ? p.kata : '';
+    return p ? p.ja : '';
   }).join('  /  ');
 }
 
@@ -963,6 +963,7 @@ function renderCard(phrase) {
       <div class="card">
         <div class="cat-badge">${phrase.cat}</div>
         ${renderScoreDots(score)}
+        <div class="ja" style="font-size:0.85rem;color:var(--text-dim);margin-bottom:4px">${phrase.ja}</div>
         <div class="kata">${phrase.kata}</div>
         <div class="kn">${phrase.kn}</div>
         <div class="gr-tag">${phrase.gr}</div>
@@ -1051,7 +1052,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260702-015';
+const APP_VERSION = '20260702-016';
 
 async function checkForUpdate() {
   try {
