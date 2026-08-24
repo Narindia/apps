@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>インド出張準備 | Bengaluru Trip Prep</title>
+<title>インド出張準備チェックリスト</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
-
   :root{
+    --canvas:#141A22;
     --ink:#1B2A4A;
     --ink-soft:#3C4A6B;
     --paper:#EFE9DA;
@@ -20,16 +20,26 @@
     --danger:#A6432F;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{background:var(--canvas);}
   body{
     margin:0;
-    background:var(--paper);
+    background:var(--canvas);
     background-image:
-      radial-gradient(circle at 10% 0%, rgba(184,137,43,0.08), transparent 40%),
-      radial-gradient(circle at 90% 10%, rgba(27,42,74,0.06), transparent 35%);
+      radial-gradient(circle at 50% -10%, rgba(184,137,43,0.10), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(63,107,82,0.10), transparent 45%);
     font-family:'Inter',sans-serif;
     color:var(--ink);
     min-height:100vh;
-    padding-bottom:60px;
+    padding:32px 16px 48px;
+  }
+  .page{
+    max-width:640px;
+    margin:0 auto;
+    background:var(--paper);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 30px 70px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.22);
+    position:relative;
   }
   header.hero{
     padding:28px 20px 22px;
@@ -51,6 +61,7 @@
     font-size:28px;
     line-height:1.25;
     margin:0 0 6px;
+    text-wrap:balance;
   }
   header.hero p{
     margin:0;
@@ -144,6 +155,7 @@
     cursor:pointer;
     user-select:none;
   }
+  .cat-head:focus-visible{outline:2px solid var(--brass); outline-offset:-2px;}
   .cat-head-left{display:flex;align-items:center;gap:10px;}
   .cat-icon{
     width:30px;height:30px;border-radius:50%;
@@ -153,6 +165,7 @@
     font-family:'JetBrains Mono',monospace;
     font-size:11px;font-weight:600;
     flex-shrink:0;
+    font-variant-numeric:tabular-nums;
   }
   .cat-icon.done{background:var(--stamp-green);color:#fff;}
   .cat-title{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
@@ -191,6 +204,7 @@
     cursor:pointer;
     background:#fff;
   }
+  .item input[type=checkbox]:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
   .item input[type=checkbox]:checked{
     background:var(--stamp-green);
     border-color:var(--stamp-green);
@@ -391,10 +405,16 @@
     z-index:50;
   }
   .save-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .footnote{font-size:10.5px;color:var(--ink-soft);text-align:center;opacity:.75;padding:0 20px;margin:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    .cat-body, .bar-fill, .chevron, .save-toast{transition:none;}
+  }
 </style>
 </head>
 <body>
 
+<div class="page">
 <header class="hero">
   <div class="eyebrow">RAKUTEN PAYMENT · BENGALURU OFFICE</div>
   <h1>インド出張<br>準備チェックリスト</h1>
@@ -441,7 +461,9 @@
     </label>
   </div>
   <button class="reset-btn" onclick="resetAll()">この出張の記録をリセット</button>
+  <p class="footnote">チェック状態や旅程入力はこの端末のブラウザにのみ保存されます</p>
 </footer>
+</div>
 
 <div class="save-toast" id="toast">保存しました</div>
 
@@ -698,7 +720,7 @@ function render(){
     catEl.className = 'category' + (isOpen ? ' open':'');
 
     catEl.innerHTML = `
-      <div class="cat-head" data-cat="${cat.id}">
+      <div class="cat-head" data-cat="${cat.id}" role="button" tabindex="0">
         <div class="cat-head-left">
           <div class="cat-icon ${total && done===total ? 'done':''}">${done}/${total}</div>
           <div>
@@ -711,12 +733,12 @@ function render(){
       <div class="cat-body">
         ${items.map(item=>`
           <div class="item ${state.checks[item.id] ? 'checked':''}">
-            <input type="checkbox" data-id="${item.id}" ${state.checks[item.id] ? 'checked':''}>
-            <div class="item-text">
+            <input type="checkbox" data-id="${item.id}" id="chk-${item.id}" ${state.checks[item.id] ? 'checked':''}>
+            <label for="chk-${item.id}" class="item-text">
               <div class="label">${esc(item.label)}${item.tag ? `<span class="tag ${item.tag}">${item.tag==='must'?'必須':'推奨'}</span>` : (item.custom ? `<span class="tag custom">追加</span>` : '')}</div>
               ${item.note ? `<div class="note">${esc(item.note)}</div>` : ''}
-              ${item.links && item.links.length ? `<div class="links">${item.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a>`).join('')}</div>` : ''}
-            </div>
+              ${item.links && item.links.length ? `<div class="links">${item.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${esc(l.label)}</a>`).join('')}</div>` : ''}
+            </label>
             ${item.custom ? `<button class="item-del" data-del="${cat.id}|${item.id}" title="削除">✕</button>` : ''}
           </div>
         `).join('')}
@@ -733,7 +755,7 @@ function render(){
   const schedEl = document.createElement('div');
   schedEl.className = 'category' + (state.openCats.schedule ? ' open':'');
   schedEl.innerHTML = `
-    <div class="cat-head" data-cat="schedule">
+    <div class="cat-head" data-cat="schedule" role="button" tabindex="0">
       <div class="cat-head-left">
         <div class="cat-icon">例</div>
         <div>
@@ -758,7 +780,7 @@ function render(){
   const hotelEl = document.createElement('div');
   hotelEl.className = 'category' + (state.openCats.hotels ? ' open':'');
   hotelEl.innerHTML = `
-    <div class="cat-head" data-cat="hotels">
+    <div class="cat-head" data-cat="hotels" role="button" tabindex="0">
       <div class="cat-head-left">
         <div class="cat-icon">🏨</div>
         <div>
@@ -778,7 +800,7 @@ function render(){
   const etiEl = document.createElement('div');
   etiEl.className = 'category' + (state.openCats.etiquette ? ' open':'');
   etiEl.innerHTML = `
-    <div class="cat-head" data-cat="etiquette">
+    <div class="cat-head" data-cat="etiquette" role="button" tabindex="0">
       <div class="cat-head-left">
         <div class="cat-icon">🙏</div>
         <div>
@@ -798,7 +820,7 @@ function render(){
   const cautionEl = document.createElement('div');
   cautionEl.className = 'category' + (state.openCats.cautions ? ' open':'');
   cautionEl.innerHTML = `
-    <div class="cat-head" data-cat="cautions">
+    <div class="cat-head" data-cat="cautions" role="button" tabindex="0">
       <div class="cat-head-left">
         <div class="cat-icon">⚠</div>
         <div>
@@ -821,7 +843,7 @@ function render(){
   const expEl = document.createElement('div');
   expEl.className = 'category' + (state.openCats.expenses ? ' open':'');
   expEl.innerHTML = `
-    <div class="cat-head" data-cat="expenses">
+    <div class="cat-head" data-cat="expenses" role="button" tabindex="0">
       <div class="cat-head-left">
         <div class="cat-icon">₹</div>
         <div>
@@ -865,7 +887,7 @@ function render(){
   const contactEl = document.createElement('div');
   contactEl.className = 'category' + (state.openCats.contacts ? ' open':'');
   contactEl.innerHTML = `
-    <div class="cat-head" data-cat="contacts">
+    <div class="cat-head" data-cat="contacts" role="button" tabindex="0">
       <div class="cat-head-left">
         <div class="cat-icon">☎</div>
         <div>
@@ -902,11 +924,15 @@ function render(){
 
 function attachHandlers(){
   document.querySelectorAll('.cat-head').forEach(head=>{
-    head.addEventListener('click', ()=>{
+    const toggle = ()=>{
       const id = head.dataset.cat;
       state.openCats[id] = !state.openCats[id];
       saveState();
       render();
+    };
+    head.addEventListener('click', toggle);
+    head.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); }
     });
   });
   document.querySelectorAll('.item input[type=checkbox]').forEach(cb=>{
