@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>インド出張準備チェックリスト</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  :root{
+    --canvas:#141A22;
+    --ink:#1B2A4A;
+    --ink-soft:#3C4A6B;
+    --paper:#EFE9DA;
+    --paper-card:#FAF7EF;
+    --brass:#B8892B;
+    --brass-light:#E9C97A;
+    --stamp-green:#3F6B52;
+    --stamp-green-light:#E7EEE7;
+    --line:#D8CFB8;
+    --danger:#A6432F;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{background:var(--canvas);}
+  body{
+    margin:0;
+    background:var(--canvas);
+    background-image:
+      radial-gradient(circle at 50% -10%, rgba(184,137,43,0.10), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(63,107,82,0.10), transparent 45%);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 16px 48px;
+  }
+  .page{
+    max-width:640px;
+    margin:0 auto;
+    background:var(--paper);
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 30px 70px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.22);
+    position:relative;
+  }
+  header.hero{
+    padding:28px 20px 22px;
+    border-bottom:2px solid var(--ink);
+    position:relative;
+    overflow:hidden;
+  }
+  header.hero .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--brass);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  header.hero h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:28px;
+    line-height:1.25;
+    margin:0 0 6px;
+    text-wrap:balance;
+  }
+  header.hero p{
+    margin:0;
+    font-size:13.5px;
+    color:var(--ink-soft);
+  }
+  .stamp{
+    position:absolute;
+    top:22px; right:18px;
+    width:64px;height:64px;
+    border:2px solid var(--brass);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    transform:rotate(-8deg);
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    color:var(--brass);
+    text-align:center;
+    line-height:1.3;
+    letter-spacing:0.05em;
+  }
+
+  .countdown{
+    margin:16px 20px 0;
+    background:var(--ink);
+    color:var(--brass-light);
+    border-radius:10px;
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:13.5px;
+  }
+  .countdown .cd-main{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:#fff;}
+  .countdown .cd-sub{font-size:11.5px;color:var(--brass-light);opacity:.85;margin-top:2px;}
+
+  .overall{
+    margin:14px 20px 6px;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .overall-top{
+    display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;
+  }
+  .overall-top span:first-child{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+  .overall-top span:last-child{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--brass);font-weight:600;}
+  .bar-track{height:6px;background:var(--line);border-radius:4px;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--brass),var(--stamp-green));width:0%;transition:width .4s ease;}
+
+  .tripmeta{
+    margin:14px 20px 0;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .tripmeta-title{font-size:12px;color:var(--ink-soft);font-weight:600;margin-bottom:10px;}
+  .meta-row{display:flex;gap:10px;margin-bottom:8px;}
+  .meta-row:last-child{margin-bottom:0;}
+  .meta-field{flex:1;min-width:0;}
+  .meta-field label{display:block;font-size:10.5px;color:var(--ink-soft);margin-bottom:3px;}
+  .meta-field input{
+    width:100%;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+  }
+  .meta-field input:focus{outline:2px solid var(--brass); outline-offset:1px;}
+
+  main{padding:20px 20px 0;}
+
+  .category{
+    margin-bottom:16px;
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .cat-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 16px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .cat-head:focus-visible{outline:2px solid var(--brass); outline-offset:-2px;}
+  .cat-head-left{display:flex;align-items:center;gap:10px;}
+  .cat-icon{
+    width:30px;height:30px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--stamp-green-light);
+    color:var(--stamp-green);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;font-weight:600;
+    flex-shrink:0;
+    font-variant-numeric:tabular-nums;
+  }
+  .cat-icon.done{background:var(--stamp-green);color:#fff;}
+  .cat-title{font-family:'Fraunces',serif;font-weight:600;font-size:16px;}
+  .cat-sub{font-size:11.5px;color:var(--ink-soft);margin-top:1px;}
+  .chevron{
+    font-size:13px;color:var(--ink-soft);
+    transition:transform .25s ease;
+  }
+  .category.open .chevron{transform:rotate(90deg);}
+
+  .cat-body{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease;
+    border-top:1px solid var(--line);
+  }
+  .category.open .cat-body{max-height:4000px;}
+
+  .item{
+    display:flex;
+    align-items:flex-start;
+    gap:11px;
+    padding:11px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  .item:last-child{border-bottom:none;}
+  .item input[type=checkbox]{
+    appearance:none;
+    -webkit-appearance:none;
+    width:20px;height:20px;
+    border:1.5px solid var(--ink-soft);
+    border-radius:5px;
+    flex-shrink:0;
+    margin-top:1px;
+    position:relative;
+    cursor:pointer;
+    background:#fff;
+  }
+  .item input[type=checkbox]:focus-visible{outline:2px solid var(--brass); outline-offset:2px;}
+  .item input[type=checkbox]:checked{
+    background:var(--stamp-green);
+    border-color:var(--stamp-green);
+  }
+  .item input[type=checkbox]:checked::after{
+    content:"";
+    position:absolute;
+    left:6px;top:2px;
+    width:5px;height:10px;
+    border:solid white;
+    border-width:0 2px 2px 0;
+    transform:rotate(40deg);
+  }
+  .item-text{flex:1;min-width:0;}
+  .item-text .label{
+    font-size:14px;
+    line-height:1.45;
+  }
+  .item.checked .label{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--line);}
+  .item-text .note{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+    line-height:1.4;
+  }
+  .tag{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    padding:1px 6px;
+    border-radius:4px;
+    margin-left:6px;
+    vertical-align:1px;
+  }
+  .tag.must{background:#F3E1DC;color:var(--danger);}
+  .tag.recommend{background:var(--brass-light);color:#7A5A16;}
+  .tag.custom{background:var(--stamp-green-light);color:var(--stamp-green);}
+  .item-del{
+    background:none;border:none;color:var(--ink-soft);font-size:15px;cursor:pointer;
+    flex-shrink:0;padding:2px 4px;line-height:1;margin-top:1px;
+  }
+  .item-del:hover{color:var(--danger);}
+
+  .add-item-row{
+    display:flex;gap:8px;padding:12px 16px;background:rgba(0,0,0,.015);
+  }
+  .add-item-row input{
+    flex:1;min-width:0;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    background:#fff;
+    color:var(--ink);
+  }
+  .add-item-row button{
+    flex-shrink:0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:#fff;
+    background:var(--brass);
+    border:none;
+    padding:0 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+  }
+
+  .schedule-day{padding:14px 16px;border-bottom:1px solid var(--line);}
+  .schedule-day:last-child{border-bottom:none;}
+  .schedule-day h4{
+    font-family:'Fraunces',serif;font-size:14.5px;margin:0 0 8px;color:var(--brass);
+  }
+  .schedule-row{display:flex;gap:10px;font-size:13px;margin-bottom:6px;line-height:1.5;}
+  .schedule-time{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;color:var(--ink-soft);
+    width:70px;flex-shrink:0;padding-top:1px;
+  }
+
+  .info-card{padding:14px 16px;border-bottom:1px solid var(--line);}
+  .info-card:last-child{border-bottom:none;}
+  .info-card .hname{font-family:'Fraunces',serif;font-weight:600;font-size:14.5px;margin-bottom:3px;}
+  .info-card .hmeta{font-size:12px;color:var(--ink-soft);margin-bottom:5px;}
+  .info-card .hnote{font-size:12.5px;line-height:1.5;}
+  .links{margin-top:6px;}
+  .links a{font-size:11px;color:var(--brass);text-decoration:underline;margin-right:12px;}
+  .item-text .links a{font-size:11px;}
+
+  .contact-row{
+    display:flex;justify-content:space-between;
+    padding:12px 16px;border-bottom:1px solid var(--line);
+    font-size:13.5px;
+    gap:10px;
+  }
+  .contact-row:last-child{border-bottom:none;}
+  .contact-row .cname{font-weight:600;}
+  .contact-row .cval{font-family:'JetBrains Mono',monospace;color:var(--ink-soft);font-size:12.5px;text-align:right;}
+
+  textarea.freenote{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    background:#fff;
+    resize:vertical;
+    min-height:70px;
+  }
+
+  .expense-add{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    padding:14px 16px;
+    background:rgba(0,0,0,.015);
+  }
+  .expense-add input{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:13px;
+    font-family:'Inter',sans-serif;
+    background:#fff;
+    color:var(--ink);
+    width:100%;
+  }
+  .expense-add .full{grid-column:1 / -1;}
+  .expense-add button{
+    grid-column:1 / -1;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:#fff;
+    background:var(--stamp-green);
+    border:none;
+    padding:9px 0;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .expense-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 16px;border-bottom:1px solid var(--line);
+    font-size:13px;
+  }
+  .expense-row .exp-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);width:64px;flex-shrink:0;}
+  .expense-row .exp-main{flex:1;min-width:0;}
+  .expense-row .exp-item{font-weight:600;}
+  .expense-row .exp-memo{font-size:11.5px;color:var(--ink-soft);}
+  .expense-row .exp-amt{font-family:'JetBrains Mono',monospace;font-weight:600;flex-shrink:0;white-space:nowrap;}
+  .expense-total{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 16px;
+    background:var(--stamp-green-light);
+    font-size:13.5px;font-weight:600;
+  }
+  .expense-total .amt{font-family:'JetBrains Mono',monospace;color:var(--stamp-green);font-size:15px;}
+  .rate-row{
+    display:flex;align-items:center;gap:8px;padding:10px 16px;
+    font-size:12px;color:var(--ink-soft);border-top:1px solid var(--line);
+  }
+  .rate-row input{width:70px;border:1px solid var(--line);border-radius:6px;padding:5px 7px;font-size:12px;}
+
+  footer{
+    padding:18px 20px 30px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+  }
+  .footer-btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .reset-btn,.io-btn{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    background:none;
+    border:1px solid var(--line);
+    padding:8px 14px;
+    border-radius:20px;
+    cursor:pointer;
+  }
+  .save-toast{
+    position:fixed;
+    bottom:18px;left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:var(--brass-light);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    padding:9px 16px;
+    border-radius:20px;
+    opacity:0;
+    transition:all .3s ease;
+    pointer-events:none;
+    z-index:50;
+  }
+  .save-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .footnote{font-size:10.5px;color:var(--ink-soft);text-align:center;opacity:.75;padding:0 20px;margin:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    .cat-body, .bar-fill, .chevron, .save-toast{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+<header class="hero">
+  <div class="eyebrow">RAKUTEN PAYMENT · BENGALURU OFFICE</div>
+  <h1>インド出張<br>準備チェックリスト</h1>
+  <p>渡航前〜現地対応・帰国後までをスマホで管理・保存</p>
+  <div class="stamp">BLR<br>ARRIVAL<br>CHECK</div>
+</header>
+
+<div class="countdown" id="countdown"></div>
+
+<div class="overall">
+  <div class="overall-top">
+    <span>全体の進捗</span>
+    <span id="overallPct">0%</span>
+  </div>
+  <div class="bar-track"><div class="bar-fill" id="overallBar"></div></div>
+</div>
+
+<div class="tripmeta">
+  <div class="tripmeta-title">旅程情報</div>
+  <div class="meta-row">
+    <div class="meta-field"><label>出張者名</label><input type="text" id="travelerName" placeholder="山田 太郎"></div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-field"><label>出発日</label><input type="date" id="departDate"></div>
+    <div class="meta-field"><label>帰国日</label><input type="date" id="returnDate"></div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-field"><label>往路便名</label><input type="text" id="flightOut" placeholder="例: AI 302"></div>
+    <div class="meta-field"><label>復路便名</label><input type="text" id="flightIn" placeholder="例: AI 301"></div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-field"><label>宿泊先</label><input type="text" id="hotelName" placeholder="ホテル名"></div>
+    <div class="meta-field"><label>予約番号</label><input type="text" id="hotelConf" placeholder="Confirmation No."></div>
+  </div>
+</div>
+
+<main id="categories"></main>
+
+<footer>
+  <div class="footer-btn-row">
+    <button class="io-btn" onclick="exportData()">📤 データをエクスポート</button>
+    <label class="io-btn" style="cursor:pointer;">📥 データをインポート
+      <input type="file" accept="application/json" style="display:none" onchange="importData(this.files[0])">
+    </label>
+  </div>
+  <button class="reset-btn" onclick="resetAll()">この出張の記録をリセット</button>
+  <p class="footnote">チェック状態や旅程入力はこの端末のブラウザにのみ保存されます</p>
+</footer>
+</div>
+
+<div class="save-toast" id="toast">保存しました</div>
+
+<script>
+const STORAGE_KEY = 'india_trip_prep_v2';
+
+const DATA = [
+  {
+    id: 'before',
+    title: '出発前準備',
+    sub: '日本側で完了させること',
+    items: [
+      {id:'visa', label:'eVisa（e-Business VISA）取得・有効期限確認', tag:'must', note:'承認まで数日かかる場合あり。入国審査(イミグレ)で確認されるため忘れずに', links:[{label:'e-Business VISA申請', url:'https://indianvisaonline.gov.in/evisa/tvoa.html'}]},
+      {id:'earrival', label:'e-Arrival Card 申請', tag:'must', note:'入国審査(イミグレ)で確認されるため必須。渡航前に登録しておく', links:[{label:'e-Arrival Card', url:'https://indianvisaonline.gov.in/earrival/'},{label:'参考記事', url:'https://indiasantana.net/india/e-arrival-card/'}]},
+      {id:'airsuvidha', label:'Air Suvidha 2.0 健康自己申告フォーム提出', tag:'must', note:'エボラ出血熱に関する体調自己申告。イミグレで確認されるため忘れずに提出', links:[{label:'Air Suvidha 申告フォーム', url:'https://airsuvidha.civilaviation.gov.in/'},{label:'参考(JAL)', url:'https://www.jal.co.jp/jp/ja/info/2026/inter/260603/india/'}]},
+      {id:'insurance', label:'海外旅行保険の加入確認', tag:'must'},
+      {id:'flight', label:'航空券・座席・預け荷物の確認', tag:'must'},
+      {id:'hotel', label:'ホテル予約確定・予約番号控え', tag:'must'},
+      {id:'pickup', label:'空港送迎の手配（現地オフィス経由 or タクシー予約）', tag:'recommend'},
+      {id:'forex', label:'両替 or 海外対応クレジットカード準備', tag:'must', note:'INR現金は少額でOK。UPI/Paytmは基本使えないため現金かカードが中心。AMEXは使えないことが多いのでVISAのカードを携行すると安全（Mastercardは未確認）'},
+      {id:'esim', label:'eSIM/現地SIMの手配（Airtel等）', tag:'recommend', note:'トリファ等のeSIMアプリは未検証。海外慣れしていなければGlobal WiFi等のレンタルWiFiが無難。楽天モバイルのローミングは使えるとの声もあるが、不通時のリスクを考えると避けた方が無難'},
+      {id:'apps', label:'必須アプリDL（Uber/Ola、Google翻訳オフライン辞書、WhatsApp）', tag:'recommend'},
+      {id:'vaccine', label:'予防接種・健康相談（腸チフス、A型肝炎など必要に応じて）', tag:'recommend', note:'渡航1ヶ月前を目安にトラベルクリニックへ相談'},
+      {id:'timezone', label:'時差の確認（インドは日本より3時間30分遅れ、サマータイムなし）', tag:'recommend', note:'現地との電話会議・待ち合わせ時間の調整に注意'},
+      {id:'itinerary_share', label:'現地担当者・受入側に到着便・宿泊先を共有', tag:'must'},
+      {id:'meeting_setup', label:'現地訪問先・面談者リストと日程調整完了', tag:'must'},
+      {id:'presentation', label:'プレゼン資料・持参ドキュメントの最終版準備', tag:'recommend'},
+    ]
+  },
+  {
+    id: 'home_office',
+    title: '身辺整理（自宅・オフィス）',
+    sub: '不在中の対応を出発前に済ませる',
+    items: [
+      {id:'leave_register', label:'勤怠システムへの出張登録・上長承認', tag:'must'},
+      {id:'expense_rule', label:'経費精算ルール・出張手当の確認', tag:'must'},
+      {id:'handover', label:'不在時の業務引き継ぎ・緊急連絡網の共有', tag:'must'},
+      {id:'autoreply', label:'メール自動返信（不在通知）の設定', tag:'recommend'},
+      {id:'vpn', label:'社用PCのオフライン作業準備・VPN接続確認', tag:'recommend'},
+      {id:'mail_hold', label:'郵便物・宅配便の一時停止 or 代理受け取り依頼', tag:'recommend'},
+      {id:'home_check', label:'自宅の家電コンセント・水道の元栓・戸締り確認', tag:'recommend'},
+      {id:'plants_pets', label:'植物の水やり・ペットのお世話を家族/知人に依頼', tag:'recommend'},
+    ]
+  },
+  {
+    id: 'packing',
+    title: '持ち物チェックリスト',
+    sub: 'パッキング前に確認',
+    items: [
+      {id:'passport', label:'パスポート（コピーも別途保管）', tag:'must'},
+      {id:'visa_print', label:'eVisa承認書の印刷（入国審査で提示求められる場合あり）', tag:'must'},
+      {id:'plug', label:'変換プラグ（Type D/M）・変圧器', tag:'recommend', note:'オフィス/ホテルは日本のプラグがそのまま使えることが多く基本的には不要。ホテルによっては必要な場合もあるため念のため携行すると安心'},
+      {id:'powerbank', label:'モバイルバッテリー', tag:'recommend'},
+      {id:'business_attire', label:'ビジネス服装（軽装・速乾素材推奨）', tag:'must'},
+      {id:'meds', label:'常備薬・胃腸薬・虫よけスプレー', tag:'recommend', note:'水道水は厳禁、辛い食事が中心になるため胃腸薬・整腸剤を持っておくと安心'},
+      {id:'sanitizer', label:'除菌シート・アルコールジェル', tag:'recommend'},
+      {id:'business_cards', label:'名刺（多めに）', tag:'must'},
+      {id:'gifts', label:'手土産（日本らしいもの、個包装が無難）', tag:'recommend'},
+      {id:'cash_small', label:'INR少額現金（タクシー・チップ用）', tag:'recommend'},
+    ]
+  },
+  {
+    id: 'arrival',
+    title: '到着後・現地対応',
+    sub: 'ベンガルール到着後のフロー',
+    items: [
+      {id:'immigration', label:'入国審査（eVisaコピー・帰国便情報を提示できるように）', tag:'must'},
+      {id:'simactivate', label:'空港でeSIM/SIMのアクティベーション確認', tag:'recommend'},
+      {id:'transport_confirm', label:'送迎 or 配車アプリで宿泊先へ移動', tag:'must'},
+      {id:'checkin', label:'ホテルチェックイン・Wi-Fi/金庫の確認', tag:'must'},
+      {id:'water', label:'水道水は飲まない・ボトル水を確保', tag:'must'},
+      {id:'emergency_share', label:'緊急連絡先・現地担当者の電話番号をスマホに保存', tag:'must'},
+      {id:'office_route', label:'翌日のオフィスまでの移動手段・所要時間を確認', tag:'recommend'},
+    ]
+  },
+  {
+    id: 'after',
+    title: '帰国後タスク',
+    sub: '出張のクロージング作業',
+    items: [
+      {id:'expense_report', label:'経費精算書の提出（領収書一式を添付）', tag:'must'},
+      {id:'trip_report', label:'出張報告書の作成・関係者への共有', tag:'must'},
+      {id:'thanks_mail', label:'訪問先・アレンジ担当者へのお礼メール送付', tag:'recommend'},
+      {id:'followups', label:'現地で受け取った名刺・依頼事項のフォローアップ', tag:'must'},
+      {id:'sim_dispose', label:'現地SIM/eSIMの解約 or 保管', tag:'recommend'},
+      {id:'knowledge_share', label:'チームへの共有会・ナレッジ共有', tag:'recommend'},
+    ]
+  },
+];
+
+const SCHEDULE = [
+  {day:'1日目（到着日）', rows:[
+    ['午前','出発（成田/羽田 → ベンガルール、経由便の場合は乗継時間に注意）'],
+    ['夜〜深夜','BLR到着・入国審査・ホテルチェックイン'],
+  ]},
+  {day:'2日目', rows:[
+    ['09:30','オフィス訪問・関係者との顔合わせ'],
+    ['11:00','ミーティング①（アジェンダ事前共有推奨）'],
+    ['13:00','ランチ（現地スタッフと同席が関係構築に有効）'],
+    ['15:00','ミーティング②'],
+    ['19:00','ディナー（現地アレンジ or 近隣で軽め）'],
+  ]},
+  {day:'3日目（帰国日 or 最終日）', rows:[
+    ['09:30','残タスクの確認・フォローアップミーティング'],
+    ['12:00','空港へ出発（市内から空港まで交通状況で60〜90分想定）'],
+    ['夜','帰国便'],
+  ]},
+];
+
+const HOTELS = [
+  {name:'Chancery Hotel (Bengaluru)', meta:'社内イチオシ / トヨタ系列', badge:'おすすめ', note:'1Fに和食レストランがあり、日本の居酒屋的なメニューで夕食も可能。地下には大きな浴場もあり疲れを癒せる。ホテル内での両替も可能。', links:[{label:'公式サイト', url:'https://www.the-chanceryhotel.com/bangalore/'}]},
+  {name:'The Leela Palace Bengaluru', meta:'高級 / Old Airport Rd周辺', note:'ビジネス利用の定番。空港からもオフィスエリアからもアクセス良好。会食にも使える館内レストランあり。'},
+  {name:'Taj MG Road / Vivanta MG Road', meta:'高級〜中級 / MG Road周辺', note:'市街中心部。夜の移動や飲食の選択肢が多いエリア。'},
+  {name:'ITC Gardenia / Windsor', meta:'高級 / Residency Road周辺', note:'落ち着いた立地でロングステイの出張者にも人気。'},
+  {name:'Bengaluru Marriott Whitefield', meta:'中級〜高級 / Whitefield', note:'IT企業が集積するエリア。訪問先がWhitefield側の場合に移動時間を短縮できる。'},
+];
+
+const ETIQUETTE = [
+  {name:'名刺交換', meta:'ビジネスマナー', note:'できれば両手（もしくは右手）で受け渡し。多めに持参し、受け取った名刺はすぐしまわず会議中は卓上に置いておくと丁寧。'},
+  {name:'時間感覚', meta:'会議・約束', note:'先方の開始が予定より遅れることがあるが、こちらは時間厳守で臨むのが無難。移動時間も渋滞を見込んで余裕を持つ。'},
+  {name:'食事・会食', meta:'宗教・文化配慮', note:'ベジタリアン対応が一般的。牛肉はヒンドゥー教、豚肉はイスラム教の観点から避けられることが多い。事前に食事制限を確認すると親切。'},
+  {name:'服装', meta:'ドレスコード', note:'IT企業訪問はビジネスカジュアルが一般的だが、初回訪問や役員面談はフォーマル寄りが無難。'},
+  {name:'挨拶', meta:'コミュニケーション', note:'握手が一般的（相手が女性の場合は会釈や合掌の「ナマステ」で様子を見るのも良い）。世間話（出身・家族など）から入ることも多い。'},
+  {name:'アルコール', meta:'会食', note:'会食での飲酒は場による。無理に勧めない・断っても失礼にはあたらない。'},
+];
+
+const CAUTIONS = [
+  {name:'時差（3時間30分）', meta:'会議スケジュール調整', note:'日本時間9:00の会議はインドでは5:30。国をまたぐ会議はできるだけ事前に時間調整しておくのが無難。'},
+  {name:'水・食事', meta:'体調管理', note:'水道水は厳禁。辛い食事が中心になるので胃腸薬・整腸剤を持っておくと安心。'},
+  {name:'クレジットカード', meta:'決済手段', note:'AMEXが使えないことが多いのでVISAのカードを携行すると安全（Mastercardは未確認）。'},
+  {name:'電源プラグ', meta:'変換アダプタ', note:'オフィスやホテルは日本のプラグがそのまま使えることが多く、変換アダプタは基本不要（ホテルによっては必要な場合もあり念のため持参推奨）。'},
+  {name:'通信手段（eSIM/WiFi）', meta:'ネット環境', note:'トリファ等のeSIMアプリは未検証。海外慣れしていなければGlobal WiFi等のレンタルWiFiが無難。楽天モバイルのローミングは使えるとの声もあるが、不通時のリスクを考えると避けた方が無難。'},
+  {name:'空港⇔市内の移動', meta:'交通・渋滞', note:'車で約1時間弱。特に朝・夕は渋滞が酷い。到着後はイミグレ・移動を含めホテルチェックインまで+1.5時間ほど見込んでおく（直行便のイミグレは+30分〜1時間）。'},
+  {name:'到着翌日のスケジュール', meta:'体調配慮', note:'到着は夜遅い便が多いため、翌日の午前中ミーティングはなるべく避けるのが体調的に安全。'},
+  {name:'出発日、空港へ向かうタイミング', meta:'渋滞対策', note:'例: ANA11時ベンガルール発の便なら渋滞を見込みホテルを7:30頃出発するのが無難（8:30過ぎ空港着目安）。'},
+  {name:'空港の手荷物検査', meta:'セキュリティチェック', note:'非常に厳しいので要注意。ベルトは必ず外して手荷物へ。PC・タブレットはもちろんACアダプタ・ケーブル類もカバンから出す必要がある。トラベル用の小さいポーチにまとめておくと出し入れがスムーズ。準備不足だと列の最後尾に回されることも。'},
+  {name:'空港への入場タイミング', meta:'搭乗手続き', note:'出発時刻の4時間前からしか空港に入場できない。深夜発便（例: JAL直行便は深夜2時台発のみ）の場合は、それまでの時間の過ごし方を計画しておく必要あり。'},
+];
+
+const CONTACTS = [
+  {name:'現地オフィス代表番号', val:'（自身で入力・保存してください）'},
+  {name:'ホテル フロント', val:'チェックイン時に控える'},
+  {name:'配車アプリサポート', val:'Uber/Ola アプリ内'},
+  {name:'在インド日本国大使館（緊急）', val:'+91-11-4610-4200'},
+  {name:'警察', val:'100'},
+  {name:'救急', val:'102 / 108'},
+];
+
+function uid(prefix){
+  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+function defaultState(){
+  return {
+    checks:{},
+    customItems:{},
+    notes:{},
+    meta:{name:'',depart:'',return:'',flightOut:'',flightIn:'',hotelName:'',hotelConf:'',jpyRate:''},
+    expenses:[],
+    openCats:{before:true}
+  };
+}
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    const merged = Object.assign(defaultState(), parsed);
+    merged.meta = Object.assign(defaultState().meta, parsed.meta || {});
+    merged.checks = parsed.checks || {};
+    merged.customItems = parsed.customItems || {};
+    merged.notes = parsed.notes || {};
+    merged.expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
+    merged.openCats = parsed.openCats || {before:true};
+    return merged;
+  }catch(e){ return defaultState(); }
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  showToast('保存しました');
+}
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1200);
+}
+
+function esc(v){
+  if(v===null||v===undefined) return '';
+  return String(v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderInfoCard(h){
+  return `<div class="info-card">
+    <div class="hname">${esc(h.name)}${h.badge ? `<span class="tag custom">${esc(h.badge)}</span>` : ''}</div>
+    ${h.meta ? `<div class="hmeta">${esc(h.meta)}</div>` : ''}
+    ${h.note ? `<div class="hnote">${esc(h.note)}</div>` : ''}
+    ${h.links && h.links.length ? `<div class="links">${h.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+function allItemsOf(cat){
+  const custom = (state.customItems[cat.id]||[]).map(c=>Object.assign({},c,{custom:true}));
+  return cat.items.concat(custom);
+}
+
+function renderCountdown(){
+  const el = document.getElementById('countdown');
+  const {depart, return: ret} = state.meta;
+  if(!depart){
+    el.innerHTML = `<div><div class="cd-main">旅程情報を入力してください</div><div class="cd-sub">出発日を設定するとカウントダウンが表示されます</div></div>`;
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dep = new Date(depart+'T00:00:00');
+  const diffDep = Math.round((dep-today)/86400000);
+  let main, sub='';
+  if(diffDep > 0){
+    main = `🛫 出発まであと ${diffDep}日`;
+  } else if(diffDep === 0){
+    main = `🛫 本日出発です！`;
+  } else if(ret){
+    const retDate = new Date(ret+'T00:00:00');
+    const diffRet = Math.round((retDate-today)/86400000);
+    if(diffRet >= 0){
+      main = `📍 出張中です`;
+      sub = diffRet===0 ? '本日帰国予定です' : `帰国まであと ${diffRet}日`;
+    } else {
+      main = `✅ 出張終了（お疲れ様でした）`;
+    }
+  } else {
+    main = `📍 出張中です`;
+  }
+  el.innerHTML = `<div><div class="cd-main">${main}</div>${sub?`<div class="cd-sub">${sub}</div>`:''}</div>`;
+}
+
+function render(){
+  const container = document.getElementById('categories');
+  container.innerHTML = '';
+
+  DATA.forEach(cat=>{
+    const items = allItemsOf(cat);
+    const total = items.length;
+    const done = items.filter(i=>state.checks[i.id]).length;
+    const isOpen = !!state.openCats[cat.id];
+
+    const catEl = document.createElement('div');
+    catEl.className = 'category' + (isOpen ? ' open':'');
+
+    catEl.innerHTML = `
+      <div class="cat-head" data-cat="${cat.id}" role="button" tabindex="0">
+        <div class="cat-head-left">
+          <div class="cat-icon ${total && done===total ? 'done':''}">${done}/${total}</div>
+          <div>
+            <div class="cat-title">${cat.title}</div>
+            <div class="cat-sub">${cat.sub}</div>
+          </div>
+        </div>
+        <div class="chevron">▶</div>
+      </div>
+      <div class="cat-body">
+        ${items.map(item=>`
+          <div class="item ${state.checks[item.id] ? 'checked':''}">
+            <input type="checkbox" data-id="${item.id}" id="chk-${item.id}" ${state.checks[item.id] ? 'checked':''}>
+            <label for="chk-${item.id}" class="item-text">
+              <div class="label">${esc(item.label)}${item.tag ? `<span class="tag ${item.tag}">${item.tag==='must'?'必須':'推奨'}</span>` : (item.custom ? `<span class="tag custom">追加</span>` : '')}</div>
+              ${item.note ? `<div class="note">${esc(item.note)}</div>` : ''}
+              ${item.links && item.links.length ? `<div class="links">${item.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${esc(l.label)}</a>`).join('')}</div>` : ''}
+            </label>
+            ${item.custom ? `<button class="item-del" data-del="${cat.id}|${item.id}" title="削除">✕</button>` : ''}
+          </div>
+        `).join('')}
+        <div class="add-item-row">
+          <input type="text" placeholder="項目を追加..." data-addinput="${cat.id}">
+          <button data-addbtn="${cat.id}">＋ 追加</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(catEl);
+  });
+
+  // Schedule block
+  const schedEl = document.createElement('div');
+  schedEl.className = 'category' + (state.openCats.schedule ? ' open':'');
+  schedEl.innerHTML = `
+    <div class="cat-head" data-cat="schedule" role="button" tabindex="0">
+      <div class="cat-head-left">
+        <div class="cat-icon">例</div>
+        <div>
+          <div class="cat-title">スケジュール例（2泊3日）</div>
+          <div class="cat-sub">目安・実際は訪問先に合わせて調整</div>
+        </div>
+      </div>
+      <div class="chevron">▶</div>
+    </div>
+    <div class="cat-body">
+      ${SCHEDULE.map(d=>`
+        <div class="schedule-day">
+          <h4>${d.day}</h4>
+          ${d.rows.map(r=>`<div class="schedule-row"><div class="schedule-time">${r[0]}</div><div>${r[1]}</div></div>`).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `;
+  container.appendChild(schedEl);
+
+  // Hotels block
+  const hotelEl = document.createElement('div');
+  hotelEl.className = 'category' + (state.openCats.hotels ? ' open':'');
+  hotelEl.innerHTML = `
+    <div class="cat-head" data-cat="hotels" role="button" tabindex="0">
+      <div class="cat-head-left">
+        <div class="cat-icon">🏨</div>
+        <div>
+          <div class="cat-title">ホテルおすすめ</div>
+          <div class="cat-sub">ベンガルール市内・目的別</div>
+        </div>
+      </div>
+      <div class="chevron">▶</div>
+    </div>
+    <div class="cat-body">
+      ${HOTELS.map(renderInfoCard).join('')}
+    </div>
+  `;
+  container.appendChild(hotelEl);
+
+  // Etiquette block
+  const etiEl = document.createElement('div');
+  etiEl.className = 'category' + (state.openCats.etiquette ? ' open':'');
+  etiEl.innerHTML = `
+    <div class="cat-head" data-cat="etiquette" role="button" tabindex="0">
+      <div class="cat-head-left">
+        <div class="cat-icon">🙏</div>
+        <div>
+          <div class="cat-title">現地ビジネスマナー</div>
+          <div class="cat-sub">初めての訪問前に目を通しておくと安心</div>
+        </div>
+      </div>
+      <div class="chevron">▶</div>
+    </div>
+    <div class="cat-body">
+      ${ETIQUETTE.map(renderInfoCard).join('')}
+    </div>
+  `;
+  container.appendChild(etiEl);
+
+  // Cautions block
+  const cautionEl = document.createElement('div');
+  cautionEl.className = 'category' + (state.openCats.cautions ? ' open':'');
+  cautionEl.innerHTML = `
+    <div class="cat-head" data-cat="cautions" role="button" tabindex="0">
+      <div class="cat-head-left">
+        <div class="cat-icon">⚠</div>
+        <div>
+          <div class="cat-title">現地事情の注意点</div>
+          <div class="cat-sub">社内メンバーからの共有（2026/08/18時点・要最新確認）</div>
+        </div>
+      </div>
+      <div class="chevron">▶</div>
+    </div>
+    <div class="cat-body">
+      ${CAUTIONS.map(renderInfoCard).join('')}
+    </div>
+  `;
+  container.appendChild(cautionEl);
+
+  // Expenses block
+  const total = state.expenses.reduce((s,e)=>s+(Number(e.amount)||0),0);
+  const rate = parseFloat(state.meta.jpyRate);
+  const jpy = (!isNaN(rate) && rate>0) ? Math.round(total*rate) : null;
+  const expEl = document.createElement('div');
+  expEl.className = 'category' + (state.openCats.expenses ? ' open':'');
+  expEl.innerHTML = `
+    <div class="cat-head" data-cat="expenses" role="button" tabindex="0">
+      <div class="cat-head-left">
+        <div class="cat-icon">₹</div>
+        <div>
+          <div class="cat-title">立替経費メモ</div>
+          <div class="cat-sub">帰国後の経費精算用に記録</div>
+        </div>
+      </div>
+      <div class="chevron">▶</div>
+    </div>
+    <div class="cat-body">
+      ${state.expenses.length===0 ? `<div class="item-text" style="padding:14px 16px;"><div class="note">まだ記録がありません</div></div>` : state.expenses.map(e=>`
+        <div class="expense-row">
+          <div class="exp-date">${esc(e.date||'')}</div>
+          <div class="exp-main">
+            <div class="exp-item">${esc(e.item)}</div>
+            ${e.memo ? `<div class="exp-memo">${esc(e.memo)}</div>` : ''}
+          </div>
+          <div class="exp-amt">₹${esc(e.amount)}</div>
+          <button class="item-del" data-delexp="${e.id}" title="削除">✕</button>
+        </div>
+      `).join('')}
+      <div class="expense-total">
+        <span>合計</span>
+        <span class="amt">₹${total.toLocaleString()}${jpy!==null ? ` （約¥${jpy.toLocaleString()}）` : ''}</span>
+      </div>
+      <div class="rate-row">
+        参考レート 1 INR = <input type="number" step="0.01" min="0" id="jpyRate" value="${esc(state.meta.jpyRate)}" placeholder="例: 1.9">円（渡航前に最新レートを確認）
+      </div>
+      <div class="expense-add">
+        <input type="date" id="expDate">
+        <input type="number" step="1" min="0" id="expAmount" placeholder="金額 (INR)">
+        <input type="text" class="full" id="expItem" placeholder="項目（例: タクシー代）">
+        <input type="text" class="full" id="expMemo" placeholder="メモ（任意）">
+        <button id="expAddBtn">＋ 経費を追加</button>
+      </div>
+    </div>
+  `;
+  container.appendChild(expEl);
+
+  // Contacts block
+  const contactEl = document.createElement('div');
+  contactEl.className = 'category' + (state.openCats.contacts ? ' open':'');
+  contactEl.innerHTML = `
+    <div class="cat-head" data-cat="contacts" role="button" tabindex="0">
+      <div class="cat-head-left">
+        <div class="cat-icon">☎</div>
+        <div>
+          <div class="cat-title">緊急連絡先</div>
+          <div class="cat-sub">出発前にスクショ推奨</div>
+        </div>
+      </div>
+      <div class="chevron">▶</div>
+    </div>
+    <div class="cat-body">
+      ${CONTACTS.map(c=>`
+        <div class="contact-row"><span class="cname">${esc(c.name)}</span><span class="cval">${esc(c.val)}</span></div>
+      `).join('')}
+      <div style="padding:14px 16px;">
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;">メモ・その他共有事項</div>
+        <textarea class="freenote" id="freenote" placeholder="訪問先の追加メモ、注意事項など">${esc(state.notes.free || '')}</textarea>
+      </div>
+    </div>
+  `;
+  container.appendChild(contactEl);
+
+  document.getElementById('travelerName').value = state.meta.name || '';
+  document.getElementById('departDate').value = state.meta.depart || '';
+  document.getElementById('returnDate').value = state.meta.return || '';
+  document.getElementById('flightOut').value = state.meta.flightOut || '';
+  document.getElementById('flightIn').value = state.meta.flightIn || '';
+  document.getElementById('hotelName').value = state.meta.hotelName || '';
+  document.getElementById('hotelConf').value = state.meta.hotelConf || '';
+
+  attachHandlers();
+  updateOverall();
+  renderCountdown();
+}
+
+function attachHandlers(){
+  document.querySelectorAll('.cat-head').forEach(head=>{
+    const toggle = ()=>{
+      const id = head.dataset.cat;
+      state.openCats[id] = !state.openCats[id];
+      saveState();
+      render();
+    };
+    head.addEventListener('click', toggle);
+    head.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); }
+    });
+  });
+  document.querySelectorAll('.item input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', (e)=>{
+      state.checks[e.target.dataset.id] = e.target.checked;
+      saveState();
+      render();
+    });
+  });
+  document.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const [catId, itemId] = btn.dataset.del.split('|');
+      state.customItems[catId] = (state.customItems[catId]||[]).filter(i=>i.id!==itemId);
+      delete state.checks[itemId];
+      saveState();
+      render();
+    });
+  });
+  document.querySelectorAll('[data-addbtn]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const catId = btn.dataset.addbtn;
+      const input = document.querySelector(`[data-addinput="${catId}"]`);
+      const label = input.value.trim();
+      if(!label) return;
+      if(!state.customItems[catId]) state.customItems[catId] = [];
+      state.customItems[catId].push({id: uid('custom'), label});
+      saveState();
+      render();
+    });
+  });
+  document.querySelectorAll('[data-addinput]').forEach(input=>{
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        document.querySelector(`[data-addbtn="${input.dataset.addinput}"]`).click();
+      }
+    });
+  });
+  document.querySelectorAll('[data-delexp]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = btn.dataset.delexp;
+      state.expenses = state.expenses.filter(x=>x.id!==id);
+      saveState();
+      render();
+    });
+  });
+  const expAddBtn = document.getElementById('expAddBtn');
+  if(expAddBtn){
+    expAddBtn.addEventListener('click', ()=>{
+      const item = document.getElementById('expItem').value.trim();
+      const amount = parseFloat(document.getElementById('expAmount').value);
+      if(!item || isNaN(amount) || amount < 0){ alert('項目名と金額を正しく入力してください'); return; }
+      const date = document.getElementById('expDate').value;
+      const memo = document.getElementById('expMemo').value.trim();
+      state.expenses.push({id: uid('exp'), date, item, amount, memo});
+      saveState();
+      render();
+    });
+  }
+  const jpyRate = document.getElementById('jpyRate');
+  if(jpyRate){
+    jpyRate.addEventListener('input', e=>{ state.meta.jpyRate = e.target.value; });
+    jpyRate.addEventListener('blur', ()=>{ saveState(); render(); });
+  }
+  const freenote = document.getElementById('freenote');
+  if(freenote){
+    freenote.addEventListener('input', (e)=>{ state.notes.free = e.target.value; });
+    freenote.addEventListener('blur', saveState);
+  }
+  ['travelerName','departDate','returnDate','flightOut','flightIn','hotelName','hotelConf'].forEach(id=>{
+    const fieldMap = {travelerName:'name',departDate:'depart',returnDate:'return',flightOut:'flightOut',flightIn:'flightIn',hotelName:'hotelName',hotelConf:'hotelConf'};
+    const el = document.getElementById(id);
+    el.addEventListener('input', e=>{ state.meta[fieldMap[id]] = e.target.value; });
+    el.addEventListener('change', ()=>{ saveState(); renderCountdown(); });
+    el.addEventListener('blur', saveState);
+  });
+}
+
+function updateOverall(){
+  const allItems = DATA.flatMap(allItemsOf);
+  const total = allItems.length;
+  const done = allItems.filter(i=>state.checks[i.id]).length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById('overallPct').textContent = pct + '%';
+  document.getElementById('overallBar').style.width = pct + '%';
+}
+
+function resetAll(){
+  if(confirm('この出張のチェック状態・旅程情報・経費メモをすべてリセットします。よろしいですか？')){
+    state = defaultState();
+    saveState();
+    render();
+  }
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `india-trip-prep-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('エクスポートしました');
+}
+
+function importData(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const parsed = JSON.parse(e.target.result);
+      const merged = Object.assign(defaultState(), parsed);
+      merged.meta = Object.assign(defaultState().meta, parsed.meta || {});
+      merged.checks = parsed.checks || {};
+      merged.customItems = parsed.customItems || {};
+      merged.notes = parsed.notes || {};
+      merged.expenses = Array.isArray(parsed.expenses) ? parsed.expenses : [];
+      merged.openCats = parsed.openCats || {before:true};
+      state = merged;
+      saveState();
+      render();
+      showToast('インポートしました');
+    }catch(err){
+      alert('ファイルの読み込みに失敗しました。正しいJSONファイルか確認してください。');
+    }
+  };
+  reader.readAsText(file);
+}
+
+render();
+</script>
+</body>
+</html>
