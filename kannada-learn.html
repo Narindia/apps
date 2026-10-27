@@ -765,10 +765,12 @@ const KEY_PROGRESS = 'kannada_progress_v1';
 const KEY_STREAK   = 'kannada_streak_v1';
 const KEY_DAILY    = 'kannada_daily_v1';
 const KEY_SETTINGS = 'kannada_settings_v1';
+const KEY_DECK     = 'kannada_deck_v1';
 let progress = {};
 let streak = {count:0, lastDate:''};
 let daily = {};
 let settings = {newCount: 3, reviewCount: 0}; // reviewCount 0=全て
+let deck = {order: [], cursor: 0};
 
 function loadStorage() {
   try {
@@ -780,7 +782,17 @@ function loadStorage() {
     if (d) daily = JSON.parse(d);
     const c = localStorage.getItem(KEY_SETTINGS);
     if (c) settings = {...settings, ...JSON.parse(c)};
+    const k = localStorage.getItem(KEY_DECK);
+    if (k) deck = JSON.parse(k);
   } catch(e) {}
+  // デッキの整合性チェック: フレーズが追加/変更されたら再構築
+  const ids = PHRASES.map(p => p.id);
+  const idSet = new Set(deck.order);
+  const valid = deck.order.length === ids.length && ids.every(id => idSet.has(id));
+  if (!valid) {
+    deck = {order: shuffle(ids), cursor: 0};
+    saveDeck();
+  }
 }
 function saveProgress() {
   try { localStorage.setItem(KEY_PROGRESS, JSON.stringify(progress)); } catch(e) {}
@@ -793,6 +805,9 @@ function saveDaily() {
 }
 function saveSettings() {
   try { localStorage.setItem(KEY_SETTINGS, JSON.stringify(settings)); } catch(e) {}
+}
+function saveDeck() {
+  try { localStorage.setItem(KEY_DECK, JSON.stringify(deck)); } catch(e) {}
 }
 
 // ─── SETTINGS UI ─────────────────────────────────────
@@ -852,38 +867,16 @@ function getDailyPlan() {
   const today = todayStr();
   const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
 
-  // 直近7日分のIDを除外リストとして作成
-  const recentIds = new Set();
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(Date.now() - 86400000 * i).toISOString().slice(0, 10);
-    (daily[d] || []).forEach(id => recentIds.add(id));
-  }
-
-  // 今日の新規フレーズを決定（未設定 or 直近と被っていたら再抽選）
-  const todayOverlaps = (daily[today] || []).some(id => recentIds.has(id));
-  if (!daily[today] || daily[today].length === 0 || todayOverlaps) {
-    const usedIds = new Set(Object.values(daily).flat());
-    const unlearned = PHRASES.filter(p => !usedIds.has(p.id));
-    let picked;
-    if (unlearned.length >= settings.newCount) {
-      // まだ未割当フレーズがある → 直近除外しつつ新規から
-      const fresh = unlearned.filter(p => !recentIds.has(p.id));
-      picked = shuffle(fresh.length >= settings.newCount ? fresh : unlearned).slice(0, settings.newCount);
-    } else {
-      // 全フレーズ割り当て済み → スコアが低い順・直近除外で選び直し
-      const sorted = [...PHRASES]
-        .filter(p => !recentIds.has(p.id))
-        .sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
-      if (sorted.length >= settings.newCount) {
-        picked = sorted.slice(0, settings.newCount);
-      } else {
-        // 除外後に足りなければ直近分もスコア順で補充
-        const rest = [...PHRASES].filter(p => recentIds.has(p.id))
-          .sort((a, b) => (progress[a.id] || 0) - (progress[b.id] || 0));
-        picked = [...sorted, ...rest].slice(0, settings.newCount);
-      }
+  // 今日の新規フレーズ: 固定シャッフル順デッキからカーソル位置の次のN語を取る(循環)
+  if (!daily[today] || daily[today].length === 0) {
+    const n = Math.min(settings.newCount, deck.order.length);
+    const picked = [];
+    for (let i = 0; i < n; i++) {
+      picked.push(deck.order[(deck.cursor + i) % deck.order.length]);
     }
-    daily[today] = picked.map(p => p.id);
+    deck.cursor = (deck.cursor + n) % deck.order.length;
+    saveDeck();
+    daily[today] = picked;
     saveDaily();
   }
 
@@ -1220,7 +1213,7 @@ document.getElementById('btnGot').onclick=function(){
 };
 
 // ─── UPDATE CHECK ────────────────────────────────────
-const APP_VERSION = '20260702-018';
+const APP_VERSION = '20261027-019';
 
 async function checkForUpdate() {
   try {
